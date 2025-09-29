@@ -272,10 +272,10 @@ function displayModalMatrix(album, participantNames) {
     album.tracks.forEach(track => {
         bodyHTML += `<tr><td><strong>${track.number}.</strong> ${track.title}</td>`;
         
-        const ratings = album.ratings[track.number] || {};
+        const ratings = album.ratings?.[track.number] || {};
         album.participants.forEach(pId => {
             const rating = ratings[pId];
-            bodyHTML += `<td>${rating !== null && rating !== undefined ? rating : '-'}</td>`;
+            bodyHTML += `<td>${rating !== null && rating !== undefined ? formatScore(rating) : '-'}</td>`;
         });
         
         const ratingValues = Object.values(ratings).filter(r => r !== null && r !== undefined);

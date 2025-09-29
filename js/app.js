@@ -83,6 +83,14 @@ function calculateAverage(numbers) {
     return (sum / numbers.length).toFixed(2);
 }
 
+// Utility: Format score for display (removes unnecessary decimals)
+function formatScore(score) {
+    if (score === null || score === undefined || isNaN(score)) return '-';
+    const num = parseFloat(score);
+    // If it's a whole number, show without decimals, otherwise show with decimals
+    return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1);
+}
+
 // Utility: Get CSS class based on score
 function getScoreClass(score) {
     if (isNaN(score)) return '';

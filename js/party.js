@@ -29,6 +29,18 @@ document.addEventListener('DOMContentLoaded', function() {
     loadParticipantsForSelection();
 });
 
+// Generate rating options with half points
+function generateRatingOptions(currentRating) {
+    const options = [];
+    for (let i = 0; i <= 10; i += 0.5) {
+        const value = i;
+        const display = i % 1 === 0 ? i.toFixed(0) : i.toFixed(1); // Show "5" or "5.5"
+        const selected = currentRating === value ? 'selected' : '';
+        options.push(`<option value="${value}" ${selected}>${display}</option>`);
+    }
+    return options.join('');
+}
+
 // Navigate between steps
 function goToStep(step) {
     // Hide all steps
@@ -262,9 +274,7 @@ function generateRatingInterface() {
                 <div class="rating-cell">
                     <select class="rating-select" data-track="${track.number}" data-participant="${p.id}">
                         <option value="">-</option>
-                        ${[0,1,2,3,4,5,6,7,8,9,10].map(n => 
-                            `<option value="${n}" ${currentRating === n ? 'selected' : ''}>${n}</option>`
-                        ).join('')}
+                        ${generateRatingOptions(currentRating)}
                     </select>
                 </div>
             `;
@@ -300,7 +310,7 @@ function generateRatingInterface() {
 async function handleRatingChange(e) {
     const trackNum = parseInt(e.target.dataset.track);
     const participantId = e.target.dataset.participant;
-    const value = e.target.value === '' ? null : parseInt(e.target.value);
+    const value = e.target.value === '' ? null : parseFloat(e.target.value);
     
     partyData.ratings[trackNum][participantId] = value;
     
@@ -449,7 +459,7 @@ function displayResults(albumAverage) {
         bodyHTML += `<tr><td><strong>${track.number}.</strong> ${track.title}</td>`;
         partyData.participants.forEach(p => {
             const rating = partyData.ratings[track.number][p.id];
-            bodyHTML += `<td>${rating !== null ? rating : '-'}</td>`;
+            bodyHTML += `<td>${rating !== null && rating !== undefined ? formatScore(rating) : '-'}</td>`;
         });
         
         const ratings = Object.values(partyData.ratings[track.number]).filter(r => r !== null);
