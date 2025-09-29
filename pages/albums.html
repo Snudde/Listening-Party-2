@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Albums - Music Party App</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💿 Album Collection</h1>
+            <p>Browse all your listening party albums</p>
+        </header>
+
+        <nav class="main-nav">
+            <a href="../index.html" class="nav-link">Home</a>
+            <a href="participants.html" class="nav-link">Participants</a>
+            <a href="create-party.html" class="nav-link">New Party</a>
+            <a href="albums.html" class="nav-link active">Albums</a>
+            <a href="top-list.html" class="nav-link">Top List</a>
+            <a href="stats.html" class="nav-link">Stats</a>
+        </nav>
+
+        <main>
+            <!-- Filter/Sort Options -->
+            <section class="filter-section">
+                <div class="filter-group">
+                    <label for="sortBy">Sort by:</label>
+                    <select id="sortBy" class="filter-select">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="score-desc">Highest Score</option>
+                        <option value="score-asc">Lowest Score</option>
+                        <option value="title">Album Title (A-Z)</option>
+                        <option value="artist">Artist Name (A-Z)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filterStatus">Status:</label>
+                    <select id="filterStatus" class="filter-select">
+                        <option value="all">All Albums</option>
+                        <option value="completed">Completed Only</option>
+                        <option value="in-progress">In Progress</option>
+                    </select>
+                </div>
+
+                <div class="album-count">
+                    <span id="albumCount">0</span> albums
+                </div>
+            </section>
+
+            <!-- Albums Grid -->
+            <section class="albums-section">
+                <div id="albumsGrid" class="albums-grid">
+                    <!-- Albums will be loaded here -->
+                </div>
+
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p>💿 No albums yet</p>
+                    <p class="empty-state-subtitle">Create your first listening party to get started!</p>
+                    <a href="create-party.html" class="btn btn-primary">Create Listening Party</a>
+                </div>
+
+                <div id="loadingState" class="loading-state">
+                    <p>Loading albums...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Album Details Modal -->
+    <div id="albumModal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="modalAlbumTitle"></h3>
+                <button class="modal-close" id="closeAlbumModal">✕</button>
+            </div>
+
+            <div class="album-modal-content">
+                <div class="album-modal-header">
+                    <div id="modalAlbumCover" class="album-cover-large"></div>
+                    <div class="album-modal-info">
+                        <p class="album-artist" id="modalArtist"></p>
+                        <div class="album-score-large">
+                            <span class="score-label">Album Score:</span>
+                            <span class="score-value" id="modalScore">0.00</span>
+                        </div>
+                        <div class="album-meta">
+                            <p>📅 <span id="modalDate"></span></p>
+                            <p>🎵 <span id="modalTrackCount"></span> tracks</p>
+                            <p>👥 <span id="modalParticipants"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4>Track Ratings</h4>
+                <div id="modalTracksList" class="modal-tracks-list">
+                    <!-- Tracks will be loaded here -->
+                </div>
+
+                <h4>Rating Matrix</h4>
+                <div id="modalRatingMatrix" class="modal-rating-matrix">
+                    <!-- Matrix will be loaded here -->
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-danger" id="deleteAlbumBtn">Delete Album</button>
+                    <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Delete Album</h3>
+                <button class="modal-close" id="closeDeleteConfirmModal">✕</button>
+            </div>
+            <p>Are you sure you want to delete <strong id="deleteAlbumName"></strong>?</p>
+            <p class="warning-text">⚠️ This action cannot be undone. All ratings will be lost.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteAlbum">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAlbum">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/albums.js"></script>
+</body>
+</html>

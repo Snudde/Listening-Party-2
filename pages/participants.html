@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Participants - Music Party App</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>👥 Participants</h1>
+            <p>Manage your music party crew</p>
+        </header>
+
+        <nav class="main-nav">
+            <a href="../index.html" class="nav-link">Home</a>
+            <a href="participants.html" class="nav-link active">Participants</a>
+            <a href="create-party.html" class="nav-link">New Party</a>
+            <a href="albums.html" class="nav-link">Albums</a>
+            <a href="top-list.html" class="nav-link">Top List</a>
+            <a href="stats.html" class="nav-link">Stats</a>
+        </nav>
+
+        <main>
+            <!-- Add Participant Form -->
+            <section class="add-participant-section">
+                <h2>Add New Participant</h2>
+                <form id="addParticipantForm" class="participant-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">Username *</label>
+                            <input type="text" id="username" name="username" required placeholder="Enter username">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="profilePicture">Profile Picture</label>
+                            <input type="file" id="profilePicture" name="profilePicture" accept="image/*">
+                            <small class="form-help">Optional - JPG, PNG, or GIF</small>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="imagePreview" class="image-preview" style="display: none;">
+                        <img id="previewImg" src="" alt="Preview">
+                        <button type="button" id="removeImage" class="btn-remove-preview">✕</button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span id="btnText">Add Participant</span>
+                        <span id="btnLoader" style="display: none;">Adding...</span>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Participants List -->
+            <section class="participants-list-section">
+                <div class="section-header">
+                    <h2>All Participants</h2>
+                    <span id="participantCount" class="count-badge">0</span>
+                </div>
+
+                <div id="participantsList" class="participants-grid">
+                    <!-- Participants will be loaded here dynamically -->
+                </div>
+
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p>👥 No participants yet</p>
+                    <p class="empty-state-subtitle">Add your first participant above to get started!</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Participant</h3>
+                <button class="modal-close" id="closeModal">✕</button>
+            </div>
+            <form id="editParticipantForm">
+                <input type="hidden" id="editParticipantId">
+                
+                <div class="form-group">
+                    <label for="editUsername">Username *</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editProfilePicture">Change Profile Picture</label>
+                    <input type="file" id="editProfilePicture" accept="image/*">
+                </div>
+
+                <div id="editImagePreview" class="image-preview" style="display: none;">
+                    <img id="editPreviewImg" src="" alt="Preview">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelEdit">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Delete Participant</h3>
+                <button class="modal-close" id="closeDeleteModal">✕</button>
+            </div>
+            <p>Are you sure you want to delete <strong id="deleteParticipantName"></strong>?</p>
+            <p class="warning-text">⚠️ This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="cancelDelete">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/participants.js"></script>
+</body>
+</html>

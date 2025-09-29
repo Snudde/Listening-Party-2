@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Listening Party - Music Party App</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Create Listening Party</h1>
+            <p>Rate an album together with your crew</p>
+        </header>
+
+        <nav class="main-nav">
+            <a href="../index.html" class="nav-link">Home</a>
+            <a href="participants.html" class="nav-link">Participants</a>
+            <a href="create-party.html" class="nav-link active">New Party</a>
+            <a href="albums.html" class="nav-link">Albums</a>
+            <a href="top-list.html" class="nav-link">Top List</a>
+            <a href="stats.html" class="nav-link">Stats</a>
+        </nav>
+
+        <main>
+            <!-- Progress Indicator -->
+            <div class="progress-bar">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <span>Album Info</span>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <span>Tracks</span>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <span>Participants</span>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-number">4</div>
+                    <span>Rating</span>
+                </div>
+                <div class="progress-step" data-step="5">
+                    <div class="step-number">5</div>
+                    <span>Results</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Album Info -->
+            <section id="step1" class="party-step active">
+                <h2>Step 1: Album Information</h2>
+                <form id="albumInfoForm" class="party-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="albumTitle">Album Title *</label>
+                            <input type="text" id="albumTitle" required placeholder="e.g., Dark Side of the Moon">
+                        </div>
+                        <div class="form-group">
+                            <label for="artistName">Artist/Band Name *</label>
+                            <input type="text" id="artistName" required placeholder="e.g., Pink Floyd">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trackCount">Number of Tracks *</label>
+                            <input type="number" id="trackCount" required min="1" max="50" placeholder="e.g., 10">
+                        </div>
+                        <div class="form-group">
+                            <label for="albumCover">Album Cover</label>
+                            <input type="file" id="albumCover" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div id="coverPreview" class="image-preview-large" style="display: none;">
+                        <img id="coverPreviewImg" src="" alt="Album Cover">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Next: Add Tracks</button>
+                </form>
+            </section>
+
+            <!-- Step 2: Track Titles -->
+            <section id="step2" class="party-step">
+                <h2>Step 2: Track Titles</h2>
+                <form id="tracksForm" class="party-form">
+                    <div id="tracksList" class="tracks-list">
+                        <!-- Track inputs will be generated here -->
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+                        <button type="submit" class="btn btn-primary">Next: Select Participants</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Step 3: Select Participants -->
+            <section id="step3" class="party-step">
+                <h2>Step 3: Select Participants</h2>
+                <form id="participantsForm" class="party-form">
+                    <p class="form-help-text">Select who will be rating this album:</p>
+                    <div id="participantsGrid" class="participants-selection-grid">
+                        <!-- Participants will be loaded here -->
+                    </div>
+                    <div id="noParticipants" class="empty-state" style="display: none;">
+                        <p>No participants found</p>
+                        <a href="participants.html" class="btn btn-primary">Add Participants First</a>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+                        <button type="submit" class="btn btn-primary" id="startRatingBtn">Start Rating Session</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Step 4: Rating Interface -->
+            <section id="step4" class="party-step">
+                <div class="rating-header">
+                    <div class="album-info-display">
+                        <div id="albumCoverDisplay" class="album-cover-small"></div>
+                        <div>
+                            <h2 id="albumTitleDisplay"></h2>
+                            <p id="artistNameDisplay"></p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(3)">Back to Participants</button>
+                </div>
+
+                <div class="rating-container">
+                    <div class="rating-instructions">
+                        <p>💡 Rate each track from 0-10. Mark tracks as "Interlude" to exclude them from the album average.</p>
+                        <button type="button" class="btn btn-success" id="calculateResultsBtn">Calculate Results</button>
+                    </div>
+
+                    <div id="ratingMatrix" class="rating-matrix">
+                        <!-- Rating grid will be generated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 5: Results -->
+            <section id="step5" class="party-step">
+                <div class="results-header">
+                    <div class="album-info-display">
+                        <div id="resultAlbumCover" class="album-cover-medium"></div>
+                        <div>
+                            <h2 id="resultAlbumTitle"></h2>
+                            <p id="resultArtistName"></p>
+                            <div class="album-score">
+                                <span class="score-label">Album Score:</span>
+                                <span class="score-value" id="albumAverageScore">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-container">
+                    <h3>Track Ratings</h3>
+                    <div id="trackRatingsList" class="track-ratings-list">
+                        <!-- Track ratings will be displayed here -->
+                    </div>
+
+                    <h3>Rating Matrix</h3>
+                    <div id="ratingMatrixDisplay" class="rating-matrix-display">
+                        <!-- Full rating matrix will be displayed here -->
+                    </div>
+
+                    <div class="results-actions">
+                        <button type="button" class="btn btn-secondary" onclick="goToStep(4)">Back to Edit Ratings</button>
+                        <a href="albums.html" class="btn btn-primary">View All Albums</a>
+                        <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/party.js"></script>
+</body>
+</html>
