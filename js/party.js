@@ -352,12 +352,22 @@ function updateAllAverages() {
 }
 
 // Get CSS class based on score
-function getScoreClass(score) {
+/*function getScoreClass(score) {
     if (isNaN(score)) return '';
     if (score >= 8) return 'score-high';
     if (score >= 6) return 'score-medium';
     if (score >= 4) return 'score-low';
     return 'score-very-low';
+} */
+
+function getScoreClass(score) {
+    if (isNaN(score) || score === null || score === undefined) return '';
+    const numScore = parseFloat(score);
+    if (numScore >= 9) return 'legendary';
+    if (numScore >= 8) return 'epic';
+    if (numScore >= 7) return 'good';
+    if (numScore >= 6) return 'mid';
+    return 'trash';
 }
 
 // Calculate final results

@@ -91,13 +91,15 @@ function formatScore(score) {
     return num % 1 === 0 ? num.toFixed(0) : num.toFixed(1);
 }
 
-// Utility: Get CSS class based on score
+// Utility: Get CSS class based on score (tier system)
 function getScoreClass(score) {
-    if (isNaN(score)) return '';
-    if (score >= 8) return 'score-high';
-    if (score >= 6) return 'score-medium';
-    if (score >= 4) return 'score-low';
-    return 'score-very-low';
+    if (isNaN(score) || score === null || score === undefined) return '';
+    const numScore = parseFloat(score);
+    if (numScore >= 9) return 'legendary';
+    if (numScore >= 8) return 'epic';
+    if (numScore >= 7) return 'good';
+    if (numScore >= 6) return 'mid';
+    return 'trash';
 }
 
 // Utility: Upload image to Firebase Storage
@@ -118,4 +120,5 @@ window.showNotification = showNotification;
 window.formatDate = formatDate;
 window.calculateAverage = calculateAverage;
 window.getScoreClass = getScoreClass;
+window.formatScore = formatScore;
 window.uploadImage = uploadImage;

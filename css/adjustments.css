@@ -1,0 +1,110 @@
+/* Base styling for the card */
+.album-card.epic, .album-card.legendary, .track-average .epic, .track-result-score .epic, td.epic, .track-average .legendary, .track-result-score .legendary, td.legendary {
+  position: relative;
+  overflow: hidden; /* make sure shine stays inside */
+}
+
+/* The shiny effect */
+.album-card.epic::after, .album-card.legendary::after, .track-average .epic::after, .track-result-score .epic::after,td.epic::after, .track-average .legendary::after, .track-result-score .legendary::after,td.legendary::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  animation: shine 6s infinite;
+  opacity: 0;
+}
+
+.album-card.epic, .track-average.epic {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+              0 0 20px rgba(168, 85, 247, 0.7);
+  animation: radiate 2s infinite ease-in-out;
+}
+
+@keyframes radiate {
+  0% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+                0 0 20px rgba(168, 85, 247, 0.7);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+                0 0 40px rgba(168, 85, 247, 0.9),
+                0 0 80px rgba(168, 85, 247, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+                0 0 20px rgba(168, 85, 247, 0.7);
+  }
+}
+
+.album-card.legendary, .track-average.legendary {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+              0 0 20px rgba(249, 115, 22, 0.7);
+  animation: orangePulse 2s infinite ease-in-out;
+}
+
+@keyframes orangePulse {
+  0% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+                0 0 20px rgba(249, 115, 22, 0.7);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+                0 0 40px rgba(249, 115, 22, 0.9),
+                0 0 80px rgba(249, 115, 22, 0.5);
+  }
+  100% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+                0 0 20px rgba(249, 115, 22, 0.7);
+  }
+}
+
+.edit-rating-header, .edit-rating-row, .rating-header-row, .rating-row {
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+
+}
+
+
+/* Keyframes for sweeping shine */
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) rotate(25deg);
+    opacity: 0;
+  }
+  10% {
+    transform: translateX(100%) rotate(25deg);
+    opacity: 1;
+  }
+  20% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.party-form input {
+    padding: 5px;
+}
+
+#step5 .album-info-display {
+  flex-direction: column;
+  text-align: center;
+}
+
+.album-cover-medium {
+    height: 300px;
+    width: 300px;
+}
+
+#resultAlbumTitle {
+    font-size: 50px;
+}

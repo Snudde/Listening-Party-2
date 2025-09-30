@@ -18,6 +18,13 @@
     --text-primary: #f1f5f9;
     --text-secondary: #cbd5e1;
     --border: #475569;
+    
+    /* Score tier colors */
+    --trash: #6b7280;
+    --mid: #22c55e;
+    --good: #3b82f6;
+    --epic: #a855f7;
+    --legendary: #f97316;
 }
 
 body {
@@ -831,24 +838,87 @@ header p {
     display: inline-block;
 }
 
-.score-high {
-    background: var(--success-color);
+/* Score tier styles */
+.trash {
+    background: var(--trash);
     color: white;
 }
 
-.score-medium {
-    background: var(--warning-color);
+.mid {
+    background: var(--mid);
     color: white;
 }
 
-.score-low {
-    background: #f97316;
+.good {
+    background: var(--good);
     color: white;
 }
 
-.score-very-low {
-    background: var(--danger-color);
+.epic {
+    background: var(--epic);
     color: white;
+}
+
+.legendary {
+    background: var(--legendary);
+    color: white;
+}
+
+/* Score tier legend (optional display element) */
+.score-legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.score-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.score-legend-item .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* Album card tier styles */
+.album-card.trash {
+    border-color: var(--trash);
+}
+
+.album-card.mid {
+    border-color: var(--mid);
+}
+
+.album-card.good {
+    border-color: var(--good);
+}
+
+.album-card.epic {
+    border-color: var(--epic);
+}
+
+.album-card.legendary {
+    border-color: var(--legendary);
+}
+
+.album-card.trash:hover,
+.album-card.mid:hover,
+.album-card.good:hover,
+.album-card.epic:hover,
+.album-card.legendary:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Results */
@@ -1421,6 +1491,27 @@ header p {
     background: linear-gradient(90deg, var(--surface-light), rgba(99, 102, 241, 0.1));
 }
 
+/* Ranking item tier borders */
+.ranking-item.trash {
+    border-color: var(--trash);
+}
+
+.ranking-item.mid {
+    border-color: var(--mid);
+}
+
+.ranking-item.good {
+    border-color: var(--good);
+}
+
+.ranking-item.epic {
+    border-color: var(--epic);
+}
+
+.ranking-item.legendary {
+    border-color: var(--legendary);
+}
+
 .ranking-number {
     font-size: 2rem;
     font-weight: bold;
@@ -1638,6 +1729,14 @@ header p {
     font-weight: bold;
 }
 
+.distribution-bar-fill.trash,
+.distribution-bar-fill.mid,
+.distribution-bar-fill.good,
+.distribution-bar-fill.epic,
+.distribution-bar-fill.legendary {
+    color: white;
+}
+
 .distribution-count {
     color: var(--text-secondary);
     font-size: 0.9rem;
@@ -1695,6 +1794,27 @@ header p {
 .participated-album-card:hover {
     transform: translateX(5px);
     border-color: var(--primary-color);
+}
+
+/* Participated album tier borders */
+.participated-album-card.trash {
+    border-color: var(--trash);
+}
+
+.participated-album-card.mid {
+    border-color: var(--mid);
+}
+
+.participated-album-card.good {
+    border-color: var(--good);
+}
+
+.participated-album-card.epic {
+    border-color: var(--epic);
+}
+
+.participated-album-card.legendary {
+    border-color: var(--legendary);
 }
 
 .participated-album-cover {

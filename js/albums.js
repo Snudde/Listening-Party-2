@@ -129,7 +129,8 @@ function displayAlbums(albums) {
 // Create album card
 function createAlbumCard(album) {
     const card = document.createElement('div');
-    card.className = 'album-card';
+    const scoreClass = album.isCompleted && album.averageScore ? getScoreClass(album.averageScore) : '';
+    card.className = `album-card ${scoreClass}`;
     card.onclick = () => openAlbumModal(album.id);
     
     const statusBadge = album.isCompleted 

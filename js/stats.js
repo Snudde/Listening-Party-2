@@ -289,7 +289,8 @@ function displayParticipatedAlbums(albums) {
     
     albums.forEach(album => {
         const albumCard = document.createElement('div');
-        albumCard.className = 'participated-album-card';
+        const scoreClass = album.isCompleted && album.averageScore ? getScoreClass(album.averageScore) : '';
+        albumCard.className = `participated-album-card ${scoreClass}`;
         albumCard.onclick = () => window.location.href = `albums.html?id=${album.id}`;
         
         albumCard.innerHTML = `
