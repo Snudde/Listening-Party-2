@@ -744,7 +744,8 @@ header p {
 
 .rating-row {
     display: grid;
-    grid-template-columns: 2fr repeat(auto-fit, minmax(100px, 1fr)) 80px 80px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
+    
     gap: 10px;
     padding: 10px;
     border-bottom: 1px solid var(--border);
