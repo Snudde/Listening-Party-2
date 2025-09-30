@@ -106,6 +106,7 @@
                 </div>
 
                 <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" id="editAlbumBtn">Edit Album</button>
                     <button type="button" class="btn btn-danger" id="deleteAlbumBtn">Delete Album</button>
                     <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
                 </div>
@@ -126,6 +127,63 @@
                 <button type="button" class="btn btn-secondary" id="cancelDeleteAlbum">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteAlbum">Delete</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Album Modal -->
+    <div id="editAlbumModal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Edit Album</h3>
+                <button class="modal-close" id="closeEditModal">✕</button>
+            </div>
+
+            <form id="editAlbumForm" class="edit-album-form">
+                <input type="hidden" id="editAlbumId">
+
+                <h4>Album Information</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editAlbumTitle">Album Title *</label>
+                        <input type="text" id="editAlbumTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editArtistName">Artist *</label>
+                        <input type="text" id="editArtistName" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editCreatedDate">Date *</label>
+                        <input type="date" id="editCreatedDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAlbumCover">Change Album Cover</label>
+                        <input type="file" id="editAlbumCover" accept="image/*">
+                    </div>
+                </div>
+
+                <div id="editCoverPreview" class="image-preview-large" style="display: none;">
+                    <img id="editCoverPreviewImg" src="" alt="Cover Preview">
+                </div>
+
+                <h4>Tracks</h4>
+                <div id="editTracksList" class="edit-tracks-list">
+                    <!-- Track inputs will be generated here -->
+                </div>
+
+                <h4>Ratings</h4>
+                <p class="form-help-text">Edit individual ratings below:</p>
+                <div id="editRatingsMatrix" class="edit-ratings-matrix">
+                    <!-- Ratings matrix will be generated here -->
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelEditAlbum">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
