@@ -4210,7 +4210,7 @@ header p {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
         }
 
         .cta-card {
@@ -4329,3 +4329,102 @@ header p {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Secondary Action Links */
+.secondary-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.cta-link-container a {
+    text-decoration: none;
+}
+
+.secondary-action-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 20px;
+    background: rgba(51, 65, 85, 0.4);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(99, 102, 241, 0.2);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.secondary-action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.secondary-action-card:hover::before {
+    left: 100%;
+}
+
+.secondary-action-card:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+    background: rgba(51, 65, 85, 0.6);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.secondary-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.secondary-label {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.secondary-arrow {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    transition: transform 0.3s ease;
+}
+
+.secondary-action-card:hover .secondary-arrow {
+    transform: translateX(5px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .action-card {
+        padding: 25px;
+    }
+
+    .action-icon {
+        font-size: 2.5rem;
+    }
+
+    .action-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .secondary-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .secondary-action-card {
+        padding: 18px 20px;
+    }
+}

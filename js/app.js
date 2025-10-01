@@ -21,9 +21,19 @@ async function loadHomeStats() {
         const totalAlbums = albumsSnapshot.size;
         document.getElementById('totalAlbums').textContent = totalAlbums;
 
-        // Count completed parties (albums marked as completed)
-        const completedAlbums = albumsSnapshot.docs.filter(doc => doc.data().isCompleted).length;
-        document.getElementById('totalParties').textContent = completedAlbums;
+        // Calculate Active Days (unique dates with parties)
+        const activeDaysSet = new Set();
+        albumsSnapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.createdAt) {
+                // Get date string (YYYY-MM-DD) from timestamp
+                const date = data.createdAt.toDate();
+                const dateStr = date.toISOString().split('T')[0];
+                activeDaysSet.add(dateStr);
+            }
+        });
+        const activeDays = activeDaysSet.size;
+        document.getElementById('totalParties').textContent = activeDays;
 
         // Count total participants
         const participantsSnapshot = await db.collection('participants').get();
@@ -41,6 +51,7 @@ async function loadHomeStats() {
         document.getElementById('totalTracks').textContent = totalTracks;
 
         console.log('✅ Stats loaded successfully!');
+        console.log(`📊 Active Days: ${activeDays}`);
     } catch (error) {
         console.error('❌ Error loading stats:', error);
         showNotification('Error loading statistics', 'error');
@@ -130,31 +141,127 @@ async function loadRecentAlbums() {
     try {
         const snapshot = await db.collection('albums')
             .orderBy('createdAt', 'desc')
-            .limit(6)
+            .limit(8) // Get 8 total: 1 featured + 7 in grid
             .get();
         
+        const featuredContainer = document.getElementById('featuredAlbum');
         const recentGrid = document.getElementById('recentAlbums');
         const noAlbumsMsg = document.getElementById('noRecentAlbums');
         
         if (snapshot.empty) {
+            featuredContainer.style.display = 'none';
             recentGrid.style.display = 'none';
             noAlbumsMsg.style.display = 'block';
             return;
         }
         
+        featuredContainer.innerHTML = '';
         recentGrid.innerHTML = '';
         noAlbumsMsg.style.display = 'none';
         
+        const albums = [];
         snapshot.forEach(doc => {
-            const album = doc.data();
-            const card = createRecentAlbumCard(doc.id, album);
+            albums.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        // First album is featured
+        if (albums.length > 0) {
+            const featuredCard = createFeaturedAlbumCard(albums[0]);
+            featuredContainer.appendChild(featuredCard);
+        }
+        
+        // Rest go in the grid (skip first one)
+        albums.slice(1).forEach(album => {
+            const card = createRecentAlbumCard(album.id, album);
             recentGrid.appendChild(card);
         });
         
-        console.log('✅ Recent albums loaded');
+        console.log('✅ Recent albums loaded with featured card');
     } catch (error) {
         console.error('❌ Error loading recent albums:', error);
     }
+}
+
+// Create large featured album card
+function createFeaturedAlbumCard(album) {
+    const card = document.createElement('div');
+    const scoreClass = album.isCompleted && album.averageScore ? getScoreClass(album.averageScore) : '';
+    card.className = `featured-album-card ${scoreClass}`;
+    card.onclick = () => window.location.href = `pages/albums.html?id=${album.id}`;
+    
+    const statusBadge = album.isCompleted 
+        ? `<span class="status-badge completed">✓ Completed</span>`
+        : `<span class="status-badge in-progress">In Progress</span>`;
+    
+    const scoreDisplay = album.isCompleted && album.averageScore
+        ? `<div class="featured-score ${scoreClass}">${formatScore(album.averageScore)}</div>`
+        : '';
+    
+    // Create description
+    const trackCount = album.trackCount || album.tracks?.length || 0;
+    const participantCount = album.participants?.length || 0;
+    const description = album.isCompleted 
+        ? `This ${trackCount}-track album was rated by ${participantCount} participant${participantCount !== 1 ? 's' : ''}.`
+        : `Rating in progress with ${participantCount} participant${participantCount !== 1 ? 's' : ''}.`;
+    
+    card.innerHTML = `
+        <div class="featured-cover">
+            <span class="featured-badge">⭐ Featured</span>
+            ${album.coverImage 
+                ? `<img src="${album.coverImage}" alt="${album.title}">` 
+                : `<div class="featured-placeholder">🎵</div>`
+            }
+            ${statusBadge}
+        </div>
+        <div class="featured-info">
+            <h3 class="featured-title">${album.title}</h3>
+            <p class="featured-artist">${album.artist}</p>
+            <div class="featured-meta">
+                <span>🎵 ${trackCount} tracks</span>
+                <span>👥 ${participantCount} ratings</span>
+                <span>📅 ${formatDate(album.createdAt)}</span>
+            </div>
+            ${scoreDisplay}
+            <p class="featured-description">${description}</p>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Create recent album card (existing function, keeping for compatibility)
+function createRecentAlbumCard(id, album) {
+    const card = document.createElement('a');
+    card.href = `pages/albums.html?id=${id}`;
+    const scoreClass = album.isCompleted && album.averageScore ? getScoreClass(album.averageScore) : '';
+    card.className = `recent-album-card ${scoreClass}`;
+    
+    const statusBadge = album.isCompleted 
+        ? `<span class="status-badge completed">✓</span>`
+        : `<span class="status-badge in-progress">...</span>`;
+    
+    card.innerHTML = `
+        <div class="recent-album-cover">
+            ${album.coverImage 
+                ? `<img src="${album.coverImage}" alt="${album.title}">` 
+                : `<div class="album-placeholder">🎵</div>`
+            }
+            ${statusBadge}
+        </div>
+        <div class="recent-album-info">
+            <h4>${album.title}</h4>
+            <p>${album.artist}</p>
+            ${album.isCompleted && album.averageScore 
+                ? `<span class="recent-album-score ${scoreClass}">${formatScore(album.averageScore)}</span>`
+                : ''
+            }
+        </div>
+    `;
+    
+    return card;
 }
 
 // Create recent album card

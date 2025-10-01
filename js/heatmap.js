@@ -120,11 +120,11 @@ class ActivityHeatmap {
             <div class="heatmap-stats">
                 <div class="stat-item">
                     <span class="stat-value">${totalParties}</span>
-                    <span class="stat-label">parties in ${this.currentYear}</span>
+                    <span class="stat-label">albums in ${this.currentYear}</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-value">${Object.keys(activityMap).length}</span>
-                    <span class="stat-label">active days</span>
+                    <span class="stat-label">total parties</span>
                 </div>
             </div>
         `;
