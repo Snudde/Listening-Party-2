@@ -34,6 +34,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Submit rating button
     document.getElementById('submitRatingBtn').addEventListener('click', submitRating);
     
+    // Chat functionality
+    document.getElementById('chatButton').addEventListener('click', openChatModal);
+    document.getElementById('closeChatModal').addEventListener('click', closeChatModal);
+    document.getElementById('cancelChat').addEventListener('click', closeChatModal);
+    document.getElementById('chatForm').addEventListener('submit', sendChatMessage);
+    
+    // Character counter
+    document.getElementById('chatMessage').addEventListener('input', function(e) {
+        const count = e.target.value.length;
+        document.getElementById('charCount').textContent = `${count}/100`;
+    });
+    
     // Generate rating buttons
     generateRatingButtons();
 });
@@ -427,6 +439,54 @@ function showRatingSubmitted(rating) {
     document.getElementById('ratingSubmitted').style.display = 'block';
     document.getElementById('submittedScore').textContent = formatScore(rating);
     document.getElementById('submittedScore').className = 'submitted-score ' + getScoreClass(rating);
+}
+
+// Chat functionality
+function openChatModal() {
+    document.getElementById('chatModal').style.display = 'flex';
+    
+    // iOS fix: Use setTimeout and explicit focus
+    setTimeout(() => {
+        const input = document.getElementById('chatMessage');
+        input.focus();
+        
+        // iOS additional fix: trigger click to show keyboard
+        input.click();
+    }, 100);
+}
+
+function closeChatModal() {
+    document.getElementById('chatModal').style.display = 'none';
+    document.getElementById('chatMessage').value = '';
+    
+    // iOS fix: Blur to ensure keyboard closes
+    document.getElementById('chatMessage').blur();
+}
+
+async function sendChatMessage(e) {
+    e.preventDefault();
+    
+    const message = document.getElementById('chatMessage').value.trim();
+    
+    if (!message) return;
+    
+    try {
+        // Add message to Firestore
+        await db.collection('party-sessions').doc(guestSession.roomCode).collection('messages').add({
+            participantId: guestSession.guestId,
+            participantName: guestSession.guestName,
+            message: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            createdAt: Date.now()
+        });
+        
+        console.log('✅ Message sent:', message);
+        closeChatModal();
+        
+    } catch (error) {
+        console.error('❌ Error sending message:', error);
+        showError('Error sending message');
+    }
 }
 
 // Show party ended

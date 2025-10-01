@@ -454,6 +454,61 @@
                 font-size: 1.2rem;
             }
         }
+
+        /* Chat Bubble Styles */
+        .chat-bubble {
+            position: absolute;
+            top: -80px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: white;
+            color: #1e293b;
+            padding: 12px 18px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            max-width: 250px;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0;
+        }
+
+        .chat-bubble.show {
+            transform: translateX(-50%) scale(1);
+            opacity: 1;
+        }
+
+        .chat-bubble-message {
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .chat-bubble-tail {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+
+        /* Make rating cards relative for positioning */
+        .rating-card {
+            position: relative;
+        }
+
+        /* Chat bubble animation on mobile */
+        @media (max-width: 768px) {
+            .chat-bubble {
+                max-width: 200px;
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>

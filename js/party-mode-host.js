@@ -324,6 +324,9 @@ function showLobby() {
                 }
             }
         });
+    
+    // Listen for chat messages
+    listenForChatMessages();
 }
 
 // Update ONLY the rating values, not the entire display
@@ -738,6 +741,65 @@ function playRatingSound(scoreClass) {
     // You can add sound effects here if you want!
     // For now, just console log
     console.log(`🔊 ${scoreClass.toUpperCase()} rating received!`);
+}
+
+// Listen for chat messages
+function listenForChatMessages() {
+    db.collection('party-sessions').doc(partySession.roomCode).collection('messages')
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const message = change.doc.data();
+                    showChatBubble(message);
+                }
+            });
+        });
+}
+
+// Show chat bubble above participant's rating card
+function showChatBubble(messageData) {
+    const participantId = messageData.participantId;
+    const message = messageData.message;
+    const participantName = messageData.participantName;
+    
+    // Find the rating card for this participant
+    const ratingCard = document.querySelector(`[data-participant-id="${participantId}"]`);
+    
+    if (!ratingCard) {
+        console.log('Rating card not found for:', participantId);
+        return;
+    }
+    
+    // Remove any existing chat bubble
+    const existingBubble = ratingCard.querySelector('.chat-bubble');
+    if (existingBubble) {
+        existingBubble.remove();
+    }
+    
+    // Create chat bubble
+    const bubble = document.createElement('div');
+    bubble.className = 'chat-bubble';
+    bubble.innerHTML = `
+        <div class="chat-bubble-message">${message}</div>
+        <div class="chat-bubble-tail"></div>
+    `;
+    
+    // Add to rating card
+    ratingCard.style.position = 'relative';
+    ratingCard.appendChild(bubble);
+    
+    // Trigger animation
+    setTimeout(() => bubble.classList.add('show'), 10);
+    
+    console.log(`💬 Chat from ${participantName}: ${message}`);
+    
+    // Remove after 8 seconds
+    setTimeout(() => {
+        bubble.classList.remove('show');
+        setTimeout(() => bubble.remove(), 500);
+    }, 8000);
 }
 
 // Cleanup on page unload

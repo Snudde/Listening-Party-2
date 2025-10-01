@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Join Party - Music Party App</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
@@ -366,6 +366,128 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* Chat Button */
+        .chat-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .chat-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .chat-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Chat Modal */
+        .chat-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .chat-modal-content {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .chat-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chat-modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 15px;
+            background: var(--surface-light);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            resize: none;
+            margin-bottom: 10px;
+            /* iOS fixes */
+            -webkit-appearance: none;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .chat-character-count {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .chat-actions .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: var(--surface-light);
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -492,6 +614,40 @@
                 <div class="submitted-score" id="submittedScore">-</div>
                 <p class="waiting-next">Waiting for other participants...</p>
             </div>
+
+            <!-- Chat Button -->
+            <button class="chat-button" id="chatButton">
+                💬
+            </button>
+        </div>
+
+        <!-- Chat Modal -->
+        <div id="chatModal" class="chat-modal" style="display: none;">
+            <div class="chat-modal-content">
+                <div class="chat-modal-header">
+                    <h3>Send a Message</h3>
+                    <button class="modal-close" id="closeChatModal">✕</button>
+                </div>
+                <form id="chatForm">
+                    <textarea 
+                        id="chatMessage" 
+                        class="chat-input" 
+                        placeholder="Type your message..."
+                        maxlength="100"
+                        rows="3"
+                        required
+                        autocomplete="off"
+                        autocorrect="on"
+                        autocapitalize="sentences"
+                        spellcheck="true"
+                    ></textarea>
+                    <div class="chat-character-count" id="charCount">0/100</div>
+                    <div class="chat-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelChat">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Send 💬</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Party Ended -->
@@ -515,6 +671,5 @@
     <!-- App Scripts -->
     <script src="../js/firebase-config.js"></script>
     <script src="../js/party-mode-guest.js"></script>
-    <script src="../js/app.js"></script>
 </body>
 </html>
