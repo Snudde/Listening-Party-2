@@ -89,7 +89,10 @@ body {
 header {
     text-align: center;
     padding: 40px 20px;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.7), rgba(139, 92, 246, 0.7));
+    background: linear-gradient(135deg, #6b7280, #1b9d4b, #2b61b9, #9a4ae5, #e56913);
+    background-size: 400% 400%; /* makes the gradient "move" */
+    animation: gradientCycle 25s ease infinite; /* smooth cycle */
+    
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
@@ -97,6 +100,18 @@ header {
     border: 1px solid rgba(255, 255, 255, 0.18);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
+
+/* Keyframes for smooth color cycling */
+@keyframes gradientCycle {
+    0% { background-position: 0% 50%; }
+    20% { background-position: 50% 50%; }
+    40% { background-position: 100% 50%; }
+    60% { background-position: 50% 50%; }
+    80% { background-position: 0% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+
 
 header h1 {
     font-size: 2.5rem;
@@ -119,6 +134,7 @@ header p {
     padding: 15px;
     border-radius: 12px;
     flex-wrap: wrap;
+    justify-content: space-between;
 }
 
 .nav-link {
