@@ -352,22 +352,12 @@ function updateAllAverages() {
 }
 
 // Get CSS class based on score
-/*function getScoreClass(score) {
+function getScoreClass(score) {
     if (isNaN(score)) return '';
     if (score >= 8) return 'score-high';
     if (score >= 6) return 'score-medium';
     if (score >= 4) return 'score-low';
     return 'score-very-low';
-} */
-
-function getScoreClass(score) {
-    if (isNaN(score) || score === null || score === undefined) return '';
-    const numScore = parseFloat(score);
-    if (numScore >= 9) return 'legendary';
-    if (numScore >= 8) return 'epic';
-    if (numScore >= 7) return 'good';
-    if (numScore >= 6) return 'mid';
-    return 'trash';
 }
 
 // Calculate final results
@@ -389,32 +379,8 @@ async function calculateResults() {
         if (!confirm) return;
     }
     
-    // Calculate album average (excluding interludes)
-    const nonInterludeTracks = partyData.tracks.filter(t => !t.isInterlude);
-    let albumTotal = 0;
-    let albumCount = 0;
-    
-    nonInterludeTracks.forEach(track => {
-        const ratings = Object.values(partyData.ratings[track.number]).filter(r => r !== null);
-        if (ratings.length > 0) {
-            const trackAvg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
-            albumTotal += trackAvg;
-            albumCount++;
-        }
-    });
-    
-    const albumAverage = albumCount > 0 ? (albumTotal / albumCount).toFixed(2) : 0;
-    
-    // Mark as completed and save
-    partyData.isCompleted = true;
-    await db.collection('albums').doc(partyData.albumId).update({
-        isCompleted: true,
-        averageScore: parseFloat(albumAverage)
-    });
-    
-    // Display results
-    displayResults(albumAverage);
-    goToStep(5);
+    // Show countdown overlay
+    showCountdownOverlay();
 }
 
 // Display results
@@ -493,6 +459,140 @@ function handleCoverPreview(e) {
             document.getElementById('coverPreview').style.display = 'block';
         };
         reader.readAsDataURL(file);
+    }
+}
+
+// Make functions available globally
+window.goToStep = goToStep;
+
+// Countdown and reveal functions
+function showCountdownOverlay() {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'countdownOverlay';
+    overlay.className = 'countdown-overlay';
+    overlay.innerHTML = `
+        <div class="countdown-content">
+            <h2>🎵 Calculating Results...</h2>
+            <div class="countdown-number" id="countdownNumber">3</div>
+            <p class="countdown-text">Get ready for the reveal!</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    // Start countdown
+    let count = 3;
+    const countdownEl = document.getElementById('countdownNumber');
+    
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            countdownEl.textContent = count;
+            countdownEl.style.animation = 'none';
+            setTimeout(() => {
+                countdownEl.style.animation = 'countdownPulse 1s ease-out';
+            }, 10);
+        } else {
+            clearInterval(countdownInterval);
+            showResultsReveal();
+        }
+    }, 1000);
+}
+
+async function showResultsReveal() {
+    const overlay = document.getElementById('countdownOverlay');
+    const content = overlay.querySelector('.countdown-content');
+    
+    // Calculate the score
+    const nonInterludeTracks = partyData.tracks.filter(t => !t.isInterlude);
+    let albumTotal = 0;
+    let albumCount = 0;
+    
+    nonInterludeTracks.forEach(track => {
+        const ratings = Object.values(partyData.ratings[track.number]).filter(r => r !== null);
+        if (ratings.length > 0) {
+            const trackAvg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+            albumTotal += trackAvg;
+            albumCount++;
+        }
+    });
+    
+    const albumAverage = albumCount > 0 ? (albumTotal / albumCount).toFixed(2) : 0;
+    const scoreClass = getScoreClass(parseFloat(albumAverage));
+    
+    // Get tier name
+    const tierNames = {
+        'trash': '🗑️ TRASH',
+        'mid': '🟢 MID',
+        'good': '🔵 GOOD',
+        'epic': '🟣 EPIC',
+        'legendary': '🟠 LEGENDARY'
+    };
+    const tierName = tierNames[scoreClass] || 'RATED';
+    
+    // Show score reveal
+    content.innerHTML = `
+        <h2>🎉 The Score Is...</h2>
+        <div class="score-reveal ${scoreClass}" id="scoreReveal">
+            <div class="score-reveal-number">${albumAverage}</div>
+            <div class="score-reveal-tier">${tierName}</div>
+        </div>
+        <p class="score-reveal-album">${partyData.albumTitle}</p>
+    `;
+    
+    // Trigger confetti
+    setTimeout(() => {
+        createConfetti(scoreClass);
+        
+        // Play score reveal animation
+        const scoreReveal = document.getElementById('scoreReveal');
+        scoreReveal.style.animation = 'scoreRevealAnimation 1s ease-out';
+    }, 100);
+    
+    // Mark as completed and save
+    partyData.isCompleted = true;
+    await db.collection('albums').doc(partyData.albumId).update({
+        isCompleted: true,
+        averageScore: parseFloat(albumAverage)
+    });
+    
+    // Wait for celebration, then show results
+    setTimeout(() => {
+        overlay.style.animation = 'fadeOut 0.5s ease-out';
+        setTimeout(() => {
+            overlay.remove();
+            displayResults(albumAverage);
+            goToStep(5);
+        }, 500);
+    }, 4000);
+}
+
+// Create confetti effect
+function createConfetti(scoreClass) {
+    const colors = {
+        'trash': ['#6b7280', '#9ca3af'],
+        'mid': ['#22c55e', '#4ade80'],
+        'good': ['#3b82f6', '#60a5fa'],
+        'epic': ['#a855f7', '#c084fc'],
+        'legendary': ['#f97316', '#fb923c']
+    };
+    
+    const confettiColors = colors[scoreClass] || ['#6366f1', '#8b5cf6', '#ec4899'];
+    
+    // Create multiple confetti pieces
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+            confetti.style.animationDelay = Math.random() * 0.5 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.getElementById('countdownOverlay').appendChild(confetti);
+            
+            // Remove after animation
+            setTimeout(() => confetti.remove(), 4000);
+        }, i * 10);
     }
 }
 

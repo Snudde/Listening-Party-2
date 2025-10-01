@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load home page stats if we're on the home page
     if (document.getElementById('totalAlbums')) {
         loadHomeStats();
+        loadRecentAlbums();
+        initFloatingBackground();
     }
 });
 
@@ -122,3 +124,127 @@ window.calculateAverage = calculateAverage;
 window.getScoreClass = getScoreClass;
 window.formatScore = formatScore;
 window.uploadImage = uploadImage;
+
+// Load recent albums for home page
+async function loadRecentAlbums() {
+    try {
+        const snapshot = await db.collection('albums')
+            .orderBy('createdAt', 'desc')
+            .limit(6)
+            .get();
+        
+        const recentGrid = document.getElementById('recentAlbums');
+        const noAlbumsMsg = document.getElementById('noRecentAlbums');
+        
+        if (snapshot.empty) {
+            recentGrid.style.display = 'none';
+            noAlbumsMsg.style.display = 'block';
+            return;
+        }
+        
+        recentGrid.innerHTML = '';
+        noAlbumsMsg.style.display = 'none';
+        
+        snapshot.forEach(doc => {
+            const album = doc.data();
+            const card = createRecentAlbumCard(doc.id, album);
+            recentGrid.appendChild(card);
+        });
+        
+        console.log('✅ Recent albums loaded');
+    } catch (error) {
+        console.error('❌ Error loading recent albums:', error);
+    }
+}
+
+// Create recent album card
+function createRecentAlbumCard(id, album) {
+    const card = document.createElement('a');
+    card.href = `pages/albums.html?id=${id}`;
+    const scoreClass = album.isCompleted && album.averageScore ? getScoreClass(album.averageScore) : '';
+    card.className = `recent-album-card ${scoreClass}`;
+    
+    const statusBadge = album.isCompleted 
+        ? `<span class="status-badge completed">✓</span>`
+        : `<span class="status-badge in-progress">...</span>`;
+    
+    card.innerHTML = `
+        <div class="recent-album-cover">
+            ${album.coverImage 
+                ? `<img src="${album.coverImage}" alt="${album.title}">` 
+                : `<div class="album-placeholder">🎵</div>`
+            }
+            ${statusBadge}
+        </div>
+        <div class="recent-album-info">
+            <h4>${album.title}</h4>
+            <p>${album.artist}</p>
+            ${album.isCompleted && album.averageScore 
+                ? `<span class="recent-album-score ${scoreClass}">${formatScore(album.averageScore)}</span>`
+                : ''
+            }
+        </div>
+    `;
+    
+    return card;
+}
+
+// Initialize floating background
+async function initFloatingBackground() {
+    try {
+        const snapshot = await db.collection('albums').get();
+        
+        if (snapshot.empty) return;
+        
+        const albums = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.coverImage) {
+                albums.push(data.coverImage);
+            }
+        });
+        
+        if (albums.length === 0) return;
+        
+        // Create 15 floating album covers (or fewer if not enough albums)
+        const floatingBg = document.getElementById('floatingBg');
+        const numCovers = Math.min(15, albums.length);
+        
+        for (let i = 0; i < numCovers; i++) {
+            const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+            createFloatingCover(floatingBg, randomAlbum, i);
+        }
+        
+        console.log('✅ Floating background initialized');
+    } catch (error) {
+        console.error('❌ Error loading floating background:', error);
+    }
+}
+
+// Create a single floating cover
+function createFloatingCover(container, imageUrl, index) {
+    const cover = document.createElement('div');
+    cover.className = 'floating-cover';
+    cover.style.backgroundImage = `url(${imageUrl})`;
+    
+    // Random starting position
+    cover.style.left = Math.random() * 100 + '%';
+    cover.style.top = Math.random() * 100 + '%';
+    
+    // Random size between 80px and 150px
+    const size = Math.random() * 70 + 80;
+    cover.style.width = size + 'px';
+    cover.style.height = size + 'px';
+    
+    // Random animation duration between 20-40 seconds
+    const duration = Math.random() * 20 + 20;
+    cover.style.animationDuration = duration + 's';
+    
+    // Random delay
+    cover.style.animationDelay = (index * 0.5) + 's';
+    
+    // Random opacity between 0.1 and 0.3
+    cover.style.opacity = Math.random() * 0.2 + 0.1;
+    
+    container.appendChild(cover);
+}

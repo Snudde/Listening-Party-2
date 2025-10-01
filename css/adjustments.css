@@ -108,3 +108,27 @@
 #resultAlbumTitle {
     font-size: 50px;
 }
+
+.album-card.good .album-card-info {
+    background-color: var(--good);
+}
+
+.album-card.trash .album-card-info {
+    background-color: var(--trash);
+}
+
+.album-card.mid .album-card-info {
+    background-color: var(--mid);
+}
+
+.album-card.epic .album-card-info {
+    background-color: var(--epic);
+}
+
+.album-card.legendary .album-card-info {
+    background-color: var(--legendary);
+}
+
+.album-card-score {
+  border: 1px solid #fff;
+}

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Participant Stats - Music Party App</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/adjustments.css">
 </head>
 <body>
     <div class="container">
@@ -24,16 +23,24 @@
         </nav>
 
         <main>
-            <!-- Participant Selection -->
-            <section class="stats-selector">
-                <label for="participantSelect">Select Participant:</label>
-                <select id="participantSelect" class="participant-dropdown">
-                    <option value="">Choose a participant...</option>
-                </select>
+            <!-- Tab Navigation -->
+            <section class="stats-tabs">
+                <button class="stats-tab active" data-tab="personal" id="personalTab">Personal Stats</button>
+                <button class="stats-tab" data-tab="global" id="globalTab">Global Stats</button>
             </section>
 
-            <!-- Stats Display -->
-            <section id="statsDisplay" class="stats-display" style="display: none;">
+            <!-- Personal Stats Tab -->
+            <div id="personalStatsTab" class="stats-tab-content active">
+                <!-- Participant Selection -->
+                <section class="stats-selector">
+                    <label for="participantSelect">Select Participant:</label>
+                    <select id="participantSelect" class="participant-dropdown">
+                        <option value="">Choose a participant...</option>
+                    </select>
+                </section>
+
+                <!-- Stats Display -->
+                <section id="statsDisplay" class="stats-display" style="display: none;">
                 <!-- Overview Cards -->
                 <div class="stats-overview">
                     <div class="stat-card-large">
@@ -69,6 +76,45 @@
                             <h3>Favorite Album</h3>
                             <p class="stat-value-small" id="favoriteAlbum">-</p>
                             <p class="stat-subtitle" id="favoriteScore">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dream & Nightmare Albums -->
+                <div class="stats-section">
+                    <h3>🌟 Dream Album</h3>
+                    <p class="stats-section-subtitle">Your top 10 rated tracks across all albums</p>
+                    <div id="dreamAlbum" class="dream-album-list">
+                        <!-- Dream tracks will be generated here -->
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <h3>💀 Nightmare Album</h3>
+                    <p class="stats-section-subtitle">Your bottom 10 rated tracks</p>
+                    <div id="nightmareAlbum" class="dream-album-list">
+                        <!-- Nightmare tracks will be generated here -->
+                    </div>
+                </div>
+
+                <!-- More Personal Stats -->
+                <div class="stats-section">
+                    <h3>🤝 Social Stats</h3>
+                    <div class="social-stats-grid">
+                        <div class="social-stat-card">
+                            <h4>Taste Twin</h4>
+                            <div id="tasteTwin">-</div>
+                            <span class="social-stat-value" id="tasteTwinScore">-</span>
+                        </div>
+                        <div class="social-stat-card">
+                            <h4>Biggest Disagreement</h4>
+                            <div id="biggestDisagreement">-</div>
+                            <span class="social-stat-value" id="disagreementDiff">-</span>
+                        </div>
+                        <div class="social-stat-card">
+                            <h4>Contrarian Pick</h4>
+                            <div id="contrarianPick">-</div>
+                            <span class="social-stat-value" id="contrarianDiff">-</span>
                         </div>
                     </div>
                 </div>
@@ -124,6 +170,89 @@
             <div id="noDataState" class="empty-state" style="display: none;">
                 <p>📊 This participant hasn't rated any albums yet</p>
                 <a href="create-party.html" class="btn btn-primary">Create Listening Party</a>
+            </div>
+            </div>
+
+            <!-- Global Stats Tab -->
+            <div id="globalStatsTab" class="stats-tab-content">
+                <section class="global-stats-container">
+                    <h2>🌍 Global Statistics</h2>
+                    <p class="stats-section-subtitle">Comparing all participants across all albums</p>
+
+                    <!-- Leaderboards -->
+                    <div class="stats-section">
+                        <h3>🏆 Participant Leaderboards</h3>
+                        <div class="leaderboard-grid">
+                            <div class="leaderboard-card">
+                                <h4>😊 Biggest Fan</h4>
+                                <p class="leaderboard-subtitle">Highest average rating</p>
+                                <div id="biggestFan" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>😤 Harshest Critic</h4>
+                                <p class="leaderboard-subtitle">Lowest average rating</p>
+                                <div id="harshestCritic" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>📊 Most Consistent</h4>
+                                <p class="leaderboard-subtitle">Lowest variance</p>
+                                <div id="mostConsistent" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>🎢 Most Diverse</h4>
+                                <p class="leaderboard-subtitle">Highest variance</p>
+                                <div id="mostDiverse" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>🎯 Most Active</h4>
+                                <p class="leaderboard-subtitle">Most albums rated</p>
+                                <div id="mostActive" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>🟠 Legendary Lover</h4>
+                                <p class="leaderboard-subtitle">Most 9+ ratings</p>
+                                <div id="legendaryLover" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>🗑️ Track Executioner</h4>
+                                <p class="leaderboard-subtitle">Most 0-3 ratings</p>
+                                <div id="trackExecutioner" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>💯 Perfect Score Giver</h4>
+                                <p class="leaderboard-subtitle">Most 10s given</p>
+                                <div id="perfectScoreGiver" class="leaderboard-result">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Album Stats -->
+                    <div class="stats-section">
+                        <h3>💿 Album Statistics</h3>
+                        <div class="leaderboard-grid">
+                            <div class="leaderboard-card">
+                                <h4>🔥 Most Divisive</h4>
+                                <p class="leaderboard-subtitle">Highest rating variance</p>
+                                <div id="mostDivisive" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>🤝 Most Agreed Upon</h4>
+                                <p class="leaderboard-subtitle">Lowest variance</p>
+                                <div id="mostAgreed" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>💎 Hidden Gem</h4>
+                                <p class="leaderboard-subtitle">High score, few participants</p>
+                                <div id="hiddenGem" class="leaderboard-result">Loading...</div>
+                            </div>
+                            <div class="leaderboard-card">
+                                <h4>👥 Crowd Favorite</h4>
+                                <p class="leaderboard-subtitle">Most participants</p>
+                                <div id="crowdFavorite" class="leaderboard-result">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>

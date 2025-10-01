@@ -6,7 +6,28 @@ document.addEventListener('DOMContentLoaded', function() {
     loadParticipants();
     
     document.getElementById('participantSelect').addEventListener('change', handleParticipantChange);
+    
+    // Tab switching
+    document.getElementById('personalTab').addEventListener('click', () => switchTab('personal'));
+    document.getElementById('globalTab').addEventListener('click', () => switchTab('global'));
+    
+    // Load global stats on page load
+    loadGlobalStats();
 });
+
+// Switch between tabs
+function switchTab(tab) {
+    document.querySelectorAll('.stats-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.stats-tab-content').forEach(c => c.classList.remove('active'));
+    
+    if (tab === 'personal') {
+        document.getElementById('personalTab').classList.add('active');
+        document.getElementById('personalStatsTab').classList.add('active');
+    } else {
+        document.getElementById('globalTab').classList.add('active');
+        document.getElementById('globalStatsTab').classList.add('active');
+    }
+}
 
 // Load participants into dropdown
 async function loadParticipants() {
@@ -82,7 +103,9 @@ async function loadParticipantStats(participantId) {
                             rating: rating,
                             track: track.title,
                             album: album.title,
-                            artist: album.artist
+                            artist: album.artist,
+                            albumId: doc.id,           // ADD THIS
+    albumCover: album.coverImage || ''  // ADD THIS
                         });
                         totalTracks++;
                     }
@@ -101,6 +124,12 @@ async function loadParticipantStats(participantId) {
         document.getElementById('statsDisplay').style.display = 'block';
         
         console.log('✅ Stats calculated:', stats);
+        console.log('✅ Stats calculated:', stats);
+console.log('🔍 ABOUT TO CALL DISPLAY FUNCTIONS');
+displayDreamAndNightmareAlbums(allRatings);
+console.log('🔍 CALLED displayDreamAndNightmareAlbums');
+displaySocialStats(participantId, albumsData, allRatings);
+console.log('🔍 CALLED displaySocialStats');
     } catch (error) {
         console.error('❌ Error loading stats:', error);
         showNotification('Error loading statistics', 'error');
@@ -308,4 +337,398 @@ function displayParticipatedAlbums(albums) {
         `;
         container.appendChild(albumCard);
     });
+}
+
+// Display dream and nightmare albums
+function displayDreamAndNightmareAlbums(allRatings) {
+    const dreamContainer = document.getElementById('dreamAlbum');
+    const nightmareContainer = document.getElementById('nightmareAlbum');
+    
+    console.log('🎵 Displaying dream/nightmare albums, total ratings:', allRatings.length);
+    
+    if (allRatings.length === 0) {
+        dreamContainer.innerHTML = '<p>No ratings yet</p>';
+        nightmareContainer.innerHTML = '<p>No ratings yet</p>';
+        return;
+    }
+    
+    // Sort by rating
+    const sortedRatings = [...allRatings].sort((a, b) => b.rating - a.rating);
+    
+    // Top 10 tracks
+    const topTracks = sortedRatings.slice(0, 10);
+    dreamContainer.innerHTML = '';
+    console.log('✨ Dream album top tracks:', topTracks.length);
+    console.log('First track data:', topTracks[0]);
+    
+    topTracks.forEach((track, index) => {
+        const trackEl = document.createElement('div');
+        trackEl.className = 'dream-track-item';
+        trackEl.onclick = () => window.location.href = `albums.html?id=${track.albumId}`;
+        trackEl.innerHTML = `
+            <div class="dream-track-rank">${index + 1}</div>
+            <div class="dream-track-cover">
+                ${track.albumCover 
+                    ? `<img src="${track.albumCover}" alt="${track.album}">` 
+                    : `<div class="dream-track-placeholder">🎵</div>`
+                }
+            </div>
+            <div class="dream-track-info">
+                <strong>${track.track}</strong>
+                <span class="dream-track-album">${track.album} - ${track.artist}</span>
+            </div>
+            <div class="dream-track-score ${getScoreClass(track.rating)}">${formatScore(track.rating)}</div>
+        `;
+        dreamContainer.appendChild(trackEl);
+    });
+    
+    console.log('✨ Dream album rendered, container children:', dreamContainer.children.length);
+    
+    // Bottom 10 tracks
+    const bottomTracks = sortedRatings.slice(-10).reverse();
+    nightmareContainer.innerHTML = '';
+    console.log('💀 Nightmare album bottom tracks:', bottomTracks.length);
+    bottomTracks.forEach((track, index) => {
+        const trackEl = document.createElement('div');
+        trackEl.className = 'dream-track-item';
+        trackEl.onclick = () => window.location.href = `albums.html?id=${track.albumId}`;
+        trackEl.innerHTML = `
+            <div class="dream-track-rank">${index + 1}</div>
+            <div class="dream-track-cover">
+                ${track.albumCover 
+                    ? `<img src="${track.albumCover}" alt="${track.album}">` 
+                    : `<div class="dream-track-placeholder">🎵</div>`
+                }
+            </div>
+            <div class="dream-track-info">
+                <strong>${track.track}</strong>
+                <span class="dream-track-album">${track.album} - ${track.artist}</span>
+            </div>
+            <div class="dream-track-score ${getScoreClass(track.rating)}">${formatScore(track.rating)}</div>
+        `;
+        nightmareContainer.appendChild(trackEl);
+    });
+}
+
+// Display social stats (taste twin, disagreements, contrarian picks)
+async function displaySocialStats(participantId, albums, userRatings) {
+    // Get all other participants and their ratings
+    const allParticipants = new Set();
+    albums.forEach(album => {
+        album.participants.forEach(pId => {
+            if (pId !== participantId) allParticipants.add(pId);
+        });
+    });
+    
+    if (allParticipants.size === 0) {
+        document.getElementById('tasteTwin').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No other participants</p>';
+        document.getElementById('biggestDisagreement').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">N/A</p>';
+        document.getElementById('contrarianPick').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">N/A</p>';
+        return;
+    }
+    
+    // Find taste twin (most agreement)
+    let tasteTwin = null;
+    let lowestDiff = Infinity;
+    
+    for (const otherId of allParticipants) {
+        let totalDiff = 0;
+        let comparisons = 0;
+        
+        albums.forEach(album => {
+            if (album.participants.includes(participantId) && album.participants.includes(otherId)) {
+                album.tracks.forEach(track => {
+                    const userRating = album.ratings?.[track.number]?.[participantId];
+                    const otherRating = album.ratings?.[track.number]?.[otherId];
+                    if (userRating !== null && userRating !== undefined && otherRating !== null && otherRating !== undefined) {
+                        totalDiff += Math.abs(userRating - otherRating);
+                        comparisons++;
+                    }
+                });
+            }
+        });
+        
+        if (comparisons > 0) {
+            const avgDiff = totalDiff / comparisons;
+            if (avgDiff < lowestDiff) {
+                lowestDiff = avgDiff;
+                const doc = await db.collection('participants').doc(otherId).get();
+                tasteTwin = doc.data().username;
+            }
+        }
+    }
+    
+    document.getElementById('tasteTwin').innerHTML = `<p style="text-align: center;">${tasteTwin || 'N/A'}</p>`;
+    document.getElementById('tasteTwinScore').textContent = lowestDiff !== Infinity ? `Avg diff: ${lowestDiff.toFixed(2)}` : '';
+    
+    // Find biggest disagreement (single track with biggest diff from average)
+    let biggestDisagreement = null;
+    let maxDiff = 0;
+    
+    albums.forEach(album => {
+        album.tracks.forEach(track => {
+            const userRating = album.ratings?.[track.number]?.[participantId];
+            if (userRating !== null && userRating !== undefined) {
+                const allRatings = Object.values(album.ratings?.[track.number] || {}).filter(r => r !== null && r !== undefined);
+                if (allRatings.length > 1) {
+                    const avg = allRatings.reduce((a, b) => a + b, 0) / allRatings.length;
+                    const diff = Math.abs(userRating - avg);
+                    if (diff > maxDiff) {
+                        maxDiff = diff;
+                        biggestDisagreement = {
+                            track: track.title,
+                            album: album.title,
+                            albumId: album.id,
+                            albumCover: album.coverImage || '',
+                            userRating,
+                            groupAvg: avg
+                        };
+                    }
+                }
+            }
+        });
+    });
+    
+    if (biggestDisagreement) {
+        document.getElementById('biggestDisagreement').innerHTML = `
+            <div class="social-stat-album" onclick="window.location.href='albums.html?id=${biggestDisagreement.albumId}'">
+                <div class="social-stat-cover">
+                    ${biggestDisagreement.albumCover 
+                        ? `<img src="${biggestDisagreement.albumCover}" alt="${biggestDisagreement.album}">` 
+                        : `<div class="social-stat-placeholder">🎵</div>`
+                    }
+                </div>
+                <div class="social-stat-info">
+                    <strong>${biggestDisagreement.track}</strong>
+                    <span>${biggestDisagreement.album}</span>
+                </div>
+            </div>
+        `;
+        document.getElementById('disagreementDiff').textContent = `You: ${formatScore(biggestDisagreement.userRating)} / Group: ${biggestDisagreement.groupAvg.toFixed(1)}`;
+    } else {
+        document.getElementById('biggestDisagreement').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">N/A</p>';
+        document.getElementById('disagreementDiff').textContent = '';
+    }
+    
+    // Find contrarian pick (album where user differs most from group)
+    let contrarianPick = null;
+    let maxAlbumDiff = 0;
+    
+    albums.forEach(album => {
+        let userTotal = 0;
+        let userCount = 0;
+        let groupTotal = 0;
+        let groupCount = 0;
+        
+        album.tracks.forEach(track => {
+            const userRating = album.ratings?.[track.number]?.[participantId];
+            if (userRating !== null && userRating !== undefined) {
+                userTotal += userRating;
+                userCount++;
+            }
+            
+            Object.entries(album.ratings?.[track.number] || {}).forEach(([pId, rating]) => {
+                if (pId !== participantId && rating !== null && rating !== undefined) {
+                    groupTotal += rating;
+                    groupCount++;
+                }
+            });
+        });
+        
+        if (userCount > 0 && groupCount > 0) {
+            const userAvg = userTotal / userCount;
+            const groupAvg = groupTotal / groupCount;
+            const diff = Math.abs(userAvg - groupAvg);
+            
+            if (diff > maxAlbumDiff) {
+                maxAlbumDiff = diff;
+                contrarianPick = {
+                    album: album.title,
+                    albumId: album.id,
+                    albumCover: album.coverImage || '',
+                    userAvg,
+                    groupAvg
+                };
+            }
+        }
+    });
+    
+    if (contrarianPick) {
+        document.getElementById('contrarianPick').innerHTML = `
+            <div class="social-stat-album" onclick="window.location.href='albums.html?id=${contrarianPick.albumId}'">
+                <div class="social-stat-cover">
+                    ${contrarianPick.albumCover 
+                        ? `<img src="${contrarianPick.albumCover}" alt="${contrarianPick.album}">` 
+                        : `<div class="social-stat-placeholder">🎵</div>`
+                    }
+                </div>
+                <div class="social-stat-info">
+                    <strong>${contrarianPick.album}</strong>
+                </div>
+            </div>
+        `;
+        document.getElementById('contrarianDiff').textContent = `You: ${contrarianPick.userAvg.toFixed(1)} / Group: ${contrarianPick.groupAvg.toFixed(1)}`;
+    } else {
+        document.getElementById('contrarianPick').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">N/A</p>';
+        document.getElementById('contrarianDiff').textContent = '';
+    }
+}
+
+// Load global stats
+async function loadGlobalStats() {
+    try {
+        const [participantsSnapshot, albumsSnapshot] = await Promise.all([
+            db.collection('participants').get(),
+            db.collection('albums').where('isCompleted', '==', true).get()
+        ]);
+        
+        if (participantsSnapshot.empty || albumsSnapshot.empty) {
+            document.querySelectorAll('.leaderboard-result').forEach(el => {
+                el.textContent = 'Not enough data';
+            });
+            return;
+        }
+        
+        // Collect all data
+        const participants = [];
+        participantsSnapshot.forEach(doc => {
+            participants.push({ id: doc.id, ...doc.data() });
+        });
+        
+        const albums = [];
+        albumsSnapshot.forEach(doc => {
+            albums.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Calculate participant stats
+        const participantStats = {};
+        
+        participants.forEach(p => {
+            participantStats[p.id] = {
+                name: p.username,
+                allRatings: [],
+                albumCount: 0,
+                tens: 0,
+                lowRatings: 0,
+                legendaryRatings: 0
+            };
+        });
+        
+        albums.forEach(album => {
+            album.participants.forEach(pId => {
+                if (participantStats[pId]) {
+                    participantStats[pId].albumCount++;
+                    
+                    album.tracks.forEach(track => {
+                        const rating = album.ratings?.[track.number]?.[pId];
+                        if (rating !== null && rating !== undefined) {
+                            participantStats[pId].allRatings.push(rating);
+                            if (rating === 10) participantStats[pId].tens++;
+                            if (rating <= 3) participantStats[pId].lowRatings++;
+                            if (rating >= 9) participantStats[pId].legendaryRatings++;
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Calculate averages and variances
+        Object.values(participantStats).forEach(stats => {
+            if (stats.allRatings.length > 0) {
+                stats.average = stats.allRatings.reduce((a, b) => a + b, 0) / stats.allRatings.length;
+                stats.variance = calculateVariance(stats.allRatings);
+            } else {
+                stats.average = 0;
+                stats.variance = 0;
+            }
+        });
+        
+        // Display participant leaderboards
+        const statsArray = Object.values(participantStats).filter(s => s.allRatings.length > 0);
+        
+        // Biggest Fan
+        const biggestFan = statsArray.reduce((max, p) => p.average > max.average ? p : max);
+        document.getElementById('biggestFan').innerHTML = `<strong>${biggestFan.name}</strong><br>${biggestFan.average.toFixed(2)} avg`;
+        
+        // Harshest Critic
+        const harshestCritic = statsArray.reduce((min, p) => p.average < min.average ? p : min);
+        document.getElementById('harshestCritic').innerHTML = `<strong>${harshestCritic.name}</strong><br>${harshestCritic.average.toFixed(2)} avg`;
+        
+        // Most Consistent
+        const mostConsistent = statsArray.reduce((min, p) => p.variance < min.variance ? p : min);
+        document.getElementById('mostConsistent').innerHTML = `<strong>${mostConsistent.name}</strong><br>σ² = ${mostConsistent.variance.toFixed(2)}`;
+        
+        // Most Diverse
+        const mostDiverse = statsArray.reduce((max, p) => p.variance > max.variance ? p : max);
+        document.getElementById('mostDiverse').innerHTML = `<strong>${mostDiverse.name}</strong><br>σ² = ${mostDiverse.variance.toFixed(2)}`;
+        
+        // Most Active
+        const mostActive = statsArray.reduce((max, p) => p.albumCount > max.albumCount ? p : max);
+        document.getElementById('mostActive').innerHTML = `<strong>${mostActive.name}</strong><br>${mostActive.albumCount} albums`;
+        
+        // Legendary Lover
+        const legendaryLover = statsArray.reduce((max, p) => p.legendaryRatings > max.legendaryRatings ? p : max);
+        document.getElementById('legendaryLover').innerHTML = `<strong>${legendaryLover.name}</strong><br>${legendaryLover.legendaryRatings} ratings ≥ 9`;
+        
+        // Track Executioner
+        const trackExecutioner = statsArray.reduce((max, p) => p.lowRatings > max.lowRatings ? p : max);
+        document.getElementById('trackExecutioner').innerHTML = `<strong>${trackExecutioner.name}</strong><br>${trackExecutioner.lowRatings} ratings ≤ 3`;
+        
+        // Perfect Score Giver
+        const perfectScoreGiver = statsArray.reduce((max, p) => p.tens > max.tens ? p : max);
+        document.getElementById('perfectScoreGiver').innerHTML = `<strong>${perfectScoreGiver.name}</strong><br>${perfectScoreGiver.tens} perfect 10s`;
+        
+        // Album stats
+        const albumStats = albums.map(album => {
+            const allRatings = [];
+            album.tracks.forEach(track => {
+                Object.values(album.ratings?.[track.number] || {}).forEach(rating => {
+                    if (rating !== null && rating !== undefined) {
+                        allRatings.push(rating);
+                    }
+                });
+            });
+            
+            return {
+                title: album.title,
+                artist: album.artist,
+                variance: calculateVariance(allRatings),
+                participantCount: album.participants.length,
+                averageScore: album.averageScore || 0
+            };
+        });
+        
+        // Most Divisive
+        const mostDivisive = albumStats.reduce((max, a) => a.variance > max.variance ? a : max);
+        document.getElementById('mostDivisive').innerHTML = `<strong>${mostDivisive.title}</strong><br>${mostDivisive.artist}<br>σ² = ${mostDivisive.variance.toFixed(2)}`;
+        
+        // Most Agreed Upon
+        const mostAgreed = albumStats.reduce((min, a) => a.variance < min.variance ? a : min);
+        document.getElementById('mostAgreed').innerHTML = `<strong>${mostAgreed.title}</strong><br>${mostAgreed.artist}<br>σ² = ${mostAgreed.variance.toFixed(2)}`;
+        
+        // Hidden Gem (high score, few participants)
+        const hiddenGems = albumStats.filter(a => a.averageScore >= 8).sort((a, b) => a.participantCount - b.participantCount);
+        if (hiddenGems.length > 0) {
+            const hiddenGem = hiddenGems[0];
+            document.getElementById('hiddenGem').innerHTML = `<strong>${hiddenGem.title}</strong><br>${hiddenGem.artist}<br>${hiddenGem.averageScore.toFixed(1)} (${hiddenGem.participantCount} participants)`;
+        } else {
+            document.getElementById('hiddenGem').textContent = 'No hidden gems yet';
+        }
+        
+        // Crowd Favorite
+        const crowdFavorite = albumStats.reduce((max, a) => a.participantCount > max.participantCount ? a : max);
+        document.getElementById('crowdFavorite').innerHTML = `<strong>${crowdFavorite.title}</strong><br>${crowdFavorite.artist}<br>${crowdFavorite.participantCount} participants`;
+        
+        console.log('✅ Global stats calculated');
+    } catch (error) {
+        console.error('❌ Error loading global stats:', error);
+    }
+}
+
+// Calculate variance
+function calculateVariance(values) {
+    if (values.length === 0) return 0;
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const squareDiffs = values.map(value => Math.pow(value - avg, 2));
+    return squareDiffs.reduce((a, b) => a + b, 0) / values.length;
 }

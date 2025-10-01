@@ -8,11 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load top rated albums
 async function loadTopList() {
     try {
-        // Get only completed albums with scores
-        const snapshot = await db.collection('albums')
-            .where('isCompleted', '==', true)
-            .orderBy('averageScore', 'desc')
-            .get();
+        // Get all albums and filter/sort in JavaScript instead
+        const snapshot = await db.collection('albums').get();
         
         const loadingState = document.getElementById('loadingState');
         const emptyState = document.getElementById('emptyState');
@@ -21,7 +18,22 @@ async function loadTopList() {
         
         loadingState.style.display = 'none';
         
-        if (snapshot.empty) {
+        // Filter for completed albums and sort by score
+        const albums = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.isCompleted === true && data.averageScore) {
+                albums.push({
+                    id: doc.id,
+                    ...data
+                });
+            }
+        });
+        
+        // Sort by score (highest first)
+        albums.sort((a, b) => (b.averageScore || 0) - (a.averageScore || 0));
+        
+        if (albums.length === 0) {
             emptyState.style.display = 'block';
             rankingsList.style.display = 'none';
             podiumSection.style.display = 'none';
@@ -30,14 +42,6 @@ async function loadTopList() {
         
         emptyState.style.display = 'none';
         rankingsList.style.display = 'block';
-        
-        const albums = [];
-        snapshot.forEach(doc => {
-            albums.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
         
         // Show podium if we have at least one album
         if (albums.length > 0) {
@@ -108,7 +112,8 @@ function displayRankings(albums) {
 // Create ranking item
 function createRankingItem(album, rank) {
     const item = document.createElement('div');
-    item.className = 'ranking-item';
+    const scoreClass = getScoreClass(album.averageScore || 0);
+    item.className = `ranking-item ${scoreClass}`;
     if (rank <= 3) {
         item.classList.add('top-three');
     }

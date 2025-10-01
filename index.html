@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Music Party App</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="../css/adjustments.css">
 </head>
 <body>
+    <!-- Floating Album Covers Background -->
+    <div class="floating-bg" id="floatingBg">
+        <!-- Album covers will be dynamically added here -->
+    </div>
+
     <div class="container">
         <header>
             <h1>🎵 Music Party App</h1>
@@ -40,6 +44,17 @@
                 <div class="stat-card">
                     <h3>Tracks Rated</h3>
                     <p class="stat-number" id="totalTracks">0</p>
+                </div>
+            </div>
+
+            <!-- Recent Albums Section -->
+            <div class="recent-section">
+                <h2>🕒 Recently Rated Albums</h2>
+                <div id="recentAlbums" class="recent-albums-grid">
+                    <!-- Recent albums will be loaded here -->
+                </div>
+                <div id="noRecentAlbums" class="empty-state-small" style="display: none;">
+                    <p>No albums rated yet. Start your first listening party!</p>
                 </div>
             </div>
 
