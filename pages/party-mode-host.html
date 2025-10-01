@@ -307,12 +307,156 @@
             padding: 20px;
             color: var(--text-secondary);
         }
+
+        /* Rating Card Avatar */
+        .rating-card-avatar {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            border: 3px solid var(--border);
+        }
+
+        .rating-card.has-rating .rating-card-avatar {
+            border-color: var(--success-color);
+        }
+
+        /* Rating Splash Animation */
+        .rating-splash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .rating-splash.show {
+            opacity: 1;
+        }
+
+        .rating-splash-content {
+            text-align: center;
+            padding: 60px;
+            border-radius: 24px;
+            transform: scale(0.5) rotate(-10deg);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .rating-splash.show .rating-splash-content {
+            transform: scale(1) rotate(0deg);
+        }
+
+        .rating-splash-content.trash {
+            background: var(--trash);
+            box-shadow: 0 0 100px var(--trash);
+        }
+
+        .rating-splash-content.mid {
+            background: var(--mid);
+            box-shadow: 0 0 100px var(--mid);
+        }
+
+        .rating-splash-content.good {
+            background: var(--good);
+            box-shadow: 0 0 100px var(--good);
+        }
+
+        .rating-splash-content.epic {
+            background: var(--epic);
+            box-shadow: 0 0 100px var(--epic);
+            animation: epicPulse 1s infinite;
+        }
+
+        .rating-splash-content.legendary {
+            background: var(--legendary);
+            box-shadow: 0 0 100px var(--legendary);
+            animation: legendaryPulse 1s infinite;
+        }
+
+        @keyframes epicPulse {
+            0%, 100% {
+                box-shadow: 0 0 100px var(--epic);
+            }
+            50% {
+                box-shadow: 0 0 150px var(--epic), 0 0 200px rgba(168, 85, 247, 0.5);
+            }
+        }
+
+        @keyframes legendaryPulse {
+            0%, 100% {
+                box-shadow: 0 0 100px var(--legendary);
+            }
+            50% {
+                box-shadow: 0 0 150px var(--legendary), 0 0 200px rgba(249, 115, 22, 0.5);
+            }
+        }
+
+        .rating-splash-name {
+            font-size: 1.8rem;
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .rating-splash-tier {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .rating-splash-score {
+            font-size: 5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Mobile responsiveness for splash */
+        @media (max-width: 768px) {
+            .rating-splash-content {
+                padding: 40px;
+            }
+
+            .rating-splash-name {
+                font-size: 1.3rem;
+            }
+
+            .rating-splash-tier {
+                font-size: 2rem;
+                letter-spacing: 3px;
+            }
+
+            .rating-splash-score {
+                font-size: 3.5rem;
+            }
+
+            .rating-card-avatar {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
-     <div class="floating-bg" id="floatingBg">
-    <!-- Album covers will be dynamically added here -->
-</div>
     <div class="container party-mode-container">
         <header>
             <h1>🎉 Party Mode - Host</h1>
@@ -404,7 +548,7 @@
             <!-- Lobby Phase -->
             <div id="lobbyPhase" style="display: none;">
                 <div class="room-code-display">
-                    <p class="join-instructions">Join at: <strong>listening-party-2-bf563.web.app/pages/party-mode-guest.html</strong></p>
+                    <p class="join-instructions">Join at: <strong>yoursite.com/party-join</strong></p>
                     <div class="room-code" id="roomCodeDisplay">------</div>
                     <p class="join-instructions">Enter this code on your phone!</p>
                 </div>

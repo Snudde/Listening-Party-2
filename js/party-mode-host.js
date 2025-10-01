@@ -12,7 +12,8 @@ let partySession = {
     ratings: {},
     albumId: null,
     phase: 'setup', // setup, lobby, active, results
-    spotifyData: null // Store Spotify album data
+    spotifyData: null, // Store Spotify album data
+    lastShownRatings: {} // Track which ratings we've already shown splashes for
 };
 
 let unsubscribe = null;
@@ -314,35 +315,91 @@ function showLobby() {
                 partySession.participants = data.participants || [];
                 partySession.ratings = data.ratings || {};
                 
-                updateLobbyDisplay();
-                
-                // If in active phase, update live ratings
-                if (partySession.phase === 'active') {
-                    updateLiveRatings();
+                // Update based on current phase
+                if (partySession.phase === 'lobby') {
+                    updateLobbyDisplay();
+                } else if (partySession.phase === 'active') {
+                    // Only update live ratings, don't rebuild the whole display
+                    updateLiveRatingsOnly();
                 }
             }
         });
 }
 
+// Update ONLY the rating values, not the entire display
+async function updateLiveRatingsOnly() {
+    const trackNum = partySession.currentTrackIndex + 1;
+    const trackRatings = partySession.ratings[trackNum] || {};
+    
+    // Initialize tracking for this track if needed
+    if (!partySession.lastShownRatings[trackNum]) {
+        partySession.lastShownRatings[trackNum] = {};
+    }
+    
+    for (const participant of partySession.participants) {
+        const rating = trackRatings[participant.id];
+        const hasRating = rating !== null && rating !== undefined;
+        const lastShownRating = partySession.lastShownRatings[trackNum][participant.id];
+        
+        // Check if this is a NEW rating we haven't shown yet
+        const isNewRating = hasRating && lastShownRating === undefined;
+        
+        // Mark this rating as shown
+        if (hasRating) {
+            partySession.lastShownRatings[trackNum][participant.id] = rating;
+        }
+        
+        // Show splash animation ONLY for new ratings!
+        if (isNewRating) {
+            console.log(`🎉 NEW rating from ${participant.name}: ${rating}`);
+            showRatingSplash(participant.name, rating);
+            
+            // Rebuild the display to show the new rating
+            updateLiveRatings();
+            break; // Exit after rebuilding once
+        }
+    }
+}
+
 // Update lobby display
-function updateLobbyDisplay() {
+async function updateLobbyDisplay() {
     const grid = document.getElementById('lobbyGrid');
     const count = document.getElementById('participantCount');
     
     count.textContent = partySession.participants.length;
     grid.innerHTML = '';
     
-    partySession.participants.forEach(participant => {
+    for (const participant of partySession.participants) {
         const card = document.createElement('div');
         card.className = 'lobby-participant';
+        
+        // Get profile picture if they have a participantId
+        let avatarHTML = `<div class="lobby-participant-avatar">${participant.name.charAt(0).toUpperCase()}</div>`;
+        
+        if (participant.participantId) {
+            try {
+                const participantDoc = await db.collection('participants').doc(participant.participantId).get();
+                if (participantDoc.exists) {
+                    const data = participantDoc.data();
+                    if (data.profilePicture) {
+                        avatarHTML = `
+                            <div class="lobby-participant-avatar">
+                                <img src="${data.profilePicture}" alt="${participant.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile pic:', error);
+            }
+        }
+        
         card.innerHTML = `
-            <div class="lobby-participant-avatar">
-                ${participant.name.charAt(0).toUpperCase()}
-            </div>
+            ${avatarHTML}
             <strong>${participant.name}</strong>
         `;
         grid.appendChild(card);
-    });
+    }
 }
 
 // Start the party
@@ -403,24 +460,59 @@ function displayCurrentTrack() {
         document.getElementById('finishPartyBtn').style.display = 'none';
     }
     
+    // IMPORTANT: Clear the shown ratings for this track
+    // This prevents duplicate splashes when moving to a new track
+    partySession.lastShownRatings[trackNum] = {};
+    
     updateLiveRatings();
 }
 
-// Update live ratings display
-function updateLiveRatings() {
+// Update live ratings display (rebuilds entire display)
+async function updateLiveRatings() {
     const container = document.getElementById('liveRatings');
+    
+    // IMPORTANT: Clear the container first to prevent duplicates
     container.innerHTML = '';
     
     const trackNum = partySession.currentTrackIndex + 1;
     const trackRatings = partySession.ratings[trackNum] || {};
     
-    partySession.participants.forEach(participant => {
+    // Initialize tracking for this track if needed
+    if (!partySession.lastShownRatings[trackNum]) {
+        partySession.lastShownRatings[trackNum] = {};
+    }
+    
+    for (const participant of partySession.participants) {
         const rating = trackRatings[participant.id];
         const hasRating = rating !== null && rating !== undefined;
         
         const card = document.createElement('div');
         card.className = `rating-card ${hasRating ? 'has-rating' : ''}`;
+        card.dataset.participantId = participant.id; // Add unique identifier
+        
+        // Get profile picture if they have a participantId
+        let avatarHTML = `<div class="rating-card-avatar">${participant.name.charAt(0).toUpperCase()}</div>`;
+        
+        if (participant.participantId) {
+            try {
+                const participantDoc = await db.collection('participants').doc(participant.participantId).get();
+                if (participantDoc.exists) {
+                    const data = participantDoc.data();
+                    if (data.profilePicture) {
+                        avatarHTML = `
+                            <div class="rating-card-avatar">
+                                <img src="${data.profilePicture}" alt="${participant.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile pic:', error);
+            }
+        }
+        
         card.innerHTML = `
+            ${avatarHTML}
             <div class="rating-card-name">${participant.name}</div>
             ${hasRating 
                 ? `<div class="rating-card-score ${getScoreClass(rating)}">${formatScore(rating)}</div>`
@@ -428,7 +520,9 @@ function updateLiveRatings() {
             }
         `;
         container.appendChild(card);
-    });
+    }
+    
+    console.log(`✅ Updated live ratings display - ${partySession.participants.length} participants`);
 }
 
 // Next track
@@ -599,6 +693,51 @@ function handleCoverPreview(e) {
         };
         reader.readAsDataURL(file);
     }
+}
+
+// Show rating splash animation
+function showRatingSplash(participantName, rating) {
+    const scoreClass = getScoreClass(rating);
+    const tierNames = {
+        'trash': '🗑️ TRASH',
+        'mid': '🟢 MID',
+        'good': '🔵 GOOD',
+        'epic': '🟣 EPIC',
+        'legendary': '🟠 LEGENDARY'
+    };
+    const tierName = tierNames[scoreClass] || 'RATED';
+    
+    // Create splash overlay
+    const splash = document.createElement('div');
+    splash.className = 'rating-splash';
+    splash.innerHTML = `
+        <div class="rating-splash-content ${scoreClass}">
+            <div class="rating-splash-name">${participantName} thinks this track is</div>
+            <div class="rating-splash-tier">${tierName}</div>
+            <div class="rating-splash-score">${formatScore(rating)}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(splash);
+    
+    // Trigger animation
+    setTimeout(() => splash.classList.add('show'), 10);
+    
+    // Remove after animation
+    setTimeout(() => {
+        splash.classList.remove('show');
+        setTimeout(() => splash.remove(), 500);
+    }, 2000);
+    
+    // Play sound effect (optional)
+    playRatingSound(scoreClass);
+}
+
+// Play sound effect based on rating tier (optional - can be disabled)
+function playRatingSound(scoreClass) {
+    // You can add sound effects here if you want!
+    // For now, just console log
+    console.log(`🔊 ${scoreClass.toUpperCase()} rating received!`);
 }
 
 // Cleanup on page unload
