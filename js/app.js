@@ -248,3 +248,74 @@ function createFloatingCover(container, imageUrl, index) {
     
     container.appendChild(cover);
 }
+
+// Initialize floating background on all pages
+async function initFloatingBackgroundUniversal() {
+    try {
+        // Check if floating background container exists
+        const floatingBg = document.getElementById('floatingBg');
+        if (!floatingBg) return; // Exit if container doesn't exist
+        
+        const snapshot = await db.collection('albums').get();
+        
+        if (snapshot.empty) return;
+        
+        const albums = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.coverImage) {
+                albums.push(data.coverImage);
+            }
+        });
+        
+        if (albums.length === 0) return;
+        
+        // Create 15 floating album covers (or fewer if not enough albums)
+        const numCovers = Math.min(15, albums.length);
+        
+        for (let i = 0; i < numCovers; i++) {
+            const randomAlbum = albums[Math.floor(Math.random() * albums.length)];
+            createFloatingCover(floatingBg, randomAlbum, i);
+        }
+        
+        console.log('✅ Floating background initialized');
+    } catch (error) {
+        console.error('❌ Error loading floating background:', error);
+    }
+}
+
+// Create a single floating cover
+function createFloatingCover(container, imageUrl, index) {
+    const cover = document.createElement('div');
+    cover.className = 'floating-cover';
+    cover.style.backgroundImage = `url(${imageUrl})`;
+    
+    // Random starting position
+    cover.style.left = Math.random() * 100 + '%';
+    cover.style.top = Math.random() * 100 + '%';
+    
+    // Random size between 80px and 150px
+    const size = Math.random() * 70 + 80;
+    cover.style.width = size + 'px';
+    cover.style.height = size + 'px';
+    
+    // Random animation duration between 20-40 seconds
+    const duration = Math.random() * 20 + 20;
+    cover.style.animationDuration = duration + 's';
+    
+    // Random delay
+    cover.style.animationDelay = (index * 0.5) + 's';
+    
+    // Random opacity between 0.1 and 0.3
+    cover.style.opacity = Math.random() * 0.2 + 0.1;
+    
+    container.appendChild(cover);
+}
+
+// Call this on every page load
+document.addEventListener('DOMContentLoaded', function() {
+    initFloatingBackgroundUniversal();
+});
+
+// Export for backward compatibility with index.html
+window.initFloatingBackground = initFloatingBackgroundUniversal;

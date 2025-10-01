@@ -184,9 +184,9 @@ async function openAlbumModal(albumId) {
         document.getElementById('modalDate').textContent = formatDate(album.createdAt);
         document.getElementById('modalTrackCount').textContent = album.trackCount || album.tracks?.length || 0;
         
-        // Load participant names
-        const participantNames = await getParticipantNames(album.participants || []);
-        document.getElementById('modalParticipants').textContent = participantNames.join(', ');
+        // Load participant data with profile pictures
+        const participantData = await getParticipantData(album.participants || []);
+        displayModalParticipants(participantData);
         
         // Set cover
         if (album.coverImage) {
@@ -195,17 +195,55 @@ async function openAlbumModal(albumId) {
             document.getElementById('modalAlbumCover').innerHTML = '<div class="album-placeholder-large">🎵</div>';
         }
         
-        // Display tracks
-        displayModalTracks(album);
-        
         // Display rating matrix
-        displayModalMatrix(album, participantNames);
+        displayModalMatrix(album, participantData);
         
         document.getElementById('albumModal').style.display = 'flex';
     } catch (error) {
         console.error('Error loading album details:', error);
         showNotification('Error loading album details', 'error');
     }
+}
+
+// Get participant data with profile pictures
+async function getParticipantData(participantIds) {
+    const participantData = [];
+    for (const id of participantIds) {
+        try {
+            const doc = await db.collection('participants').doc(id).get();
+            if (doc.exists) {
+                participantData.push({
+                    id: id,
+                    username: doc.data().username,
+                    profilePicture: doc.data().profilePicture || ''
+                });
+            }
+        } catch (error) {
+            console.error('Error loading participant:', error);
+        }
+    }
+    return participantData;
+}
+
+// Display participants with profile pictures
+function displayModalParticipants(participantData) {
+    const container = document.getElementById('modalParticipants');
+    container.innerHTML = '';
+    
+    participantData.forEach(participant => {
+        const participantEl = document.createElement('div');
+        participantEl.className = 'modal-participant';
+        participantEl.innerHTML = `
+            <div class="modal-participant-avatar">
+                ${participant.profilePicture 
+                    ? `<img src="${participant.profilePicture}" alt="${participant.username}">` 
+                    : `<div class="avatar-placeholder-mini">${participant.username.charAt(0).toUpperCase()}</div>`
+                }
+            </div>
+            <span class="modal-participant-name">${participant.username}</span>
+        `;
+        container.appendChild(participantEl);
+    });
 }
 
 // Get participant names
@@ -255,7 +293,7 @@ function displayModalTracks(album) {
 }
 
 // Display rating matrix in modal
-function displayModalMatrix(album, participantNames) {
+function displayModalMatrix(album, participantData) {
     const matrixDiv = document.getElementById('modalRatingMatrix');
     matrixDiv.innerHTML = '';
     
@@ -269,8 +307,20 @@ function displayModalMatrix(album, participantNames) {
     
     // Header
     let headerHTML = '<thead><tr><th>Track</th>';
-    participantNames.forEach(name => {
-        headerHTML += `<th>${name}</th>`;
+    participantData.forEach(participant => {
+        headerHTML += `
+            <th>
+                <div class="matrix-participant-header">
+                    <div class="matrix-participant-avatar">
+                        ${participant.profilePicture 
+                            ? `<img src="${participant.profilePicture}" alt="${participant.username}">` 
+                            : `<div class="avatar-placeholder-mini">${participant.username.charAt(0).toUpperCase()}</div>`
+                        }
+                    </div>
+                    <span>${participant.username}</span>
+                </div>
+            </th>
+        `;
     });
     headerHTML += '<th>Average</th></tr></thead>';
     table.innerHTML = headerHTML;
@@ -281,8 +331,8 @@ function displayModalMatrix(album, participantNames) {
         bodyHTML += `<tr><td><strong>${track.number}.</strong> ${track.title}</td>`;
         
         const ratings = album.ratings?.[track.number] || {};
-        album.participants.forEach(pId => {
-            const rating = ratings[pId];
+        participantData.forEach(participant => {
+            const rating = ratings[participant.id];
             bodyHTML += `<td>${rating !== null && rating !== undefined ? formatScore(rating) : '-'}</td>`;
         });
         

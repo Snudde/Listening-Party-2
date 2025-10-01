@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="../css/adjustments.css">
 </head>
 <body>
+    <!-- Floating Album Covers Background -->
+<div class="floating-bg" id="floatingBg">
+    <!-- Album covers will be dynamically added here -->
+</div>
     <div class="container">
         <header>
             <h1>💿 Album Collection</h1>
@@ -72,48 +76,48 @@
     </div>
 
     <!-- Album Details Modal -->
-    <div id="albumModal" class="modal" style="display: none;">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3 id="modalAlbumTitle"></h3>
-                <button class="modal-close" id="closeAlbumModal">✕</button>
-            </div>
+   <div id="albumModal" class="modal" style="display: none;">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3 id="modalAlbumTitle"></h3>
+            <button class="modal-close" id="closeAlbumModal">✕</button>
+        </div>
 
-            <div class="album-modal-content">
-                <div class="album-modal-header">
-                    <div id="modalAlbumCover" class="album-cover-large"></div>
-                    <div class="album-modal-info">
-                        <p class="album-artist" id="modalArtist"></p>
-                        <div class="album-score-large">
-                            <span class="score-label">Album Score:</span>
-                            <span class="score-value" id="modalScore">0.00</span>
-                        </div>
-                        <div class="album-meta">
-                            <p>📅 <span id="modalDate"></span></p>
-                            <p>🎵 <span id="modalTrackCount"></span> tracks</p>
-                            <p>👥 <span id="modalParticipants"></span></p>
+        <div class="album-modal-content">
+            <div class="album-modal-header">
+                <div id="modalAlbumCover" class="album-cover-large"></div>
+                <div class="album-modal-info">
+                    <p class="album-artist" id="modalArtist"></p>
+                    <div class="album-score-large">
+                        <span class="score-label">Album Score:</span>
+                        <span class="score-value" id="modalScore">0.00</span>
+                    </div>
+                    <div class="album-meta">
+                        <p>📅 <span id="modalDate"></span></p>
+                        <p>🎵 <span id="modalTrackCount"></span> tracks</p>
+                    </div>
+                    <div class="album-participants-section">
+                        <h4>👥 Participants</h4>
+                        <div id="modalParticipants" class="modal-participants-grid">
+                            <!-- Participants will be loaded here -->
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <h4>Track Ratings</h4>
-                <div id="modalTracksList" class="modal-tracks-list">
-                    <!-- Tracks will be loaded here -->
-                </div>
+            <h4>Rating Matrix</h4>
+            <div id="modalRatingMatrix" class="modal-rating-matrix">
+                <!-- Matrix will be loaded here -->
+            </div>
 
-                <h4>Rating Matrix</h4>
-                <div id="modalRatingMatrix" class="modal-rating-matrix">
-                    <!-- Matrix will be loaded here -->
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-primary" id="editAlbumBtn">Edit Album</button>
-                    <button type="button" class="btn btn-danger" id="deleteAlbumBtn">Delete Album</button>
-                    <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
-                </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" id="editAlbumBtn">Edit Album</button>
+                <button type="button" class="btn btn-danger" id="deleteAlbumBtn">Delete Album</button>
+                <button type="button" class="btn btn-secondary" id="closeModalBtn">Close</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="modal" style="display: none;">
