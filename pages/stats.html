@@ -41,136 +41,139 @@
 
                 <!-- Stats Display -->
                 <section id="statsDisplay" class="stats-display" style="display: none;">
-                <!-- Overview Cards -->
-                <div class="stats-overview">
-                    <div class="stat-card-large">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-content">
-                            <h3>Average Rating</h3>
-                            <p class="stat-value" id="avgRating">0.00</p>
-                            <p class="stat-subtitle">Across all tracks</p>
+                    <!-- Overview Cards -->
+                    <div class="stats-overview">
+                        <div class="stat-card-large">
+                            <div class="stat-icon">⭐</div>
+                            <div class="stat-content">
+                                <h3>Average Rating</h3>
+                                <p class="stat-value" id="avgRating">0.00</p>
+                                <p class="stat-subtitle">Across all tracks</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-large">
+                            <div class="stat-icon">🎵</div>
+                            <div class="stat-content">
+                                <h3>Albums Rated</h3>
+                                <p class="stat-value" id="albumsRated">0</p>
+                                <p class="stat-subtitle">Listening parties attended</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-large">
+                            <div class="stat-icon">🎼</div>
+                            <div class="stat-content">
+                                <h3>Tracks Rated</h3>
+                                <p class="stat-value" id="tracksRated">0</p>
+                                <p class="stat-subtitle">Individual track ratings</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-large">
+                            <div class="stat-icon">💿</div>
+                            <div class="stat-content">
+                                <h3>Favorite Album</h3>
+                                <div id="favoriteAlbumCard">
+                                    <!-- Favorite album card will be displayed here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="stat-card-large">
-                        <div class="stat-icon">🎵</div>
-                        <div class="stat-content">
-                            <h3>Albums Rated</h3>
-                            <p class="stat-value" id="albumsRated">0</p>
-                            <p class="stat-subtitle">Listening parties attended</p>
+                    <!-- Dream & Nightmare Albums -->
+                    <div class="stats-section">
+                        <h3>🌟 Dream Album</h3>
+                        <p class="stats-section-subtitle">Your top 10 rated tracks across all albums</p>
+                        <div id="dreamAlbum" class="dream-album-list">
+                            <!-- Dream tracks will be generated here -->
                         </div>
                     </div>
 
-                    <div class="stat-card-large">
-                        <div class="stat-icon">🎼</div>
-                        <div class="stat-content">
-                            <h3>Tracks Rated</h3>
-                            <p class="stat-value" id="tracksRated">0</p>
-                            <p class="stat-subtitle">Individual track ratings</p>
+                    <div class="stats-section">
+                        <h3>💀 Nightmare Album</h3>
+                        <p class="stats-section-subtitle">Your bottom 10 rated tracks</p>
+                        <div id="nightmareAlbum" class="dream-album-list">
+                            <!-- Nightmare tracks will be generated here -->
                         </div>
                     </div>
 
-                    <div class="stat-card-large">
-                        <div class="stat-icon">💿</div>
-                        <div class="stat-content">
-                            <h3>Favorite Album</h3>
-                            <p class="stat-value-small" id="favoriteAlbum">-</p>
-                            <p class="stat-subtitle" id="favoriteScore">-</p>
+                    <!-- Social Stats -->
+                    <div class="stats-section">
+                        <h3>🤝 Social Stats</h3>
+                        <div class="social-stats-grid">
+                            <div class="social-stat-card">
+                                <h4>Taste Twin</h4>
+                                <div id="tasteTwin">-</div>
+                                <span class="social-stat-value" id="tasteTwinScore">-</span>
+                            </div>
+                            <div class="social-stat-card">
+                                <h4>Biggest Disagreement</h4>
+                                <div id="biggestDisagreement">-</div>
+                                <span class="social-stat-value" id="disagreementDiff">-</span>
+                            </div>
+                            <div class="social-stat-card">
+                                <h4>Contrarian Pick</h4>
+                                <div id="contrarianPick">-</div>
+                                <span class="social-stat-value" id="contrarianDiff">-</span>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Rating Distribution -->
+                    <div class="stats-section">
+                        <h3>Rating Distribution</h3>
+                        <div id="ratingDistribution" class="rating-distribution">
+                            <!-- Distribution bars will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- Albums Participated In -->
+                    <div class="stats-section">
+                        <h3>Albums Participated In</h3>
+                        <div id="participatedAlbums" class="participated-albums">
+                            <!-- Album list will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- Rating Tendencies -->
+                    <div class="stats-section">
+                        <h3>Rating Tendencies</h3>
+                        <div class="tendencies-grid">
+                            <div class="tendency-card tendency-card-large">
+                                <h4>Highest Rated Track</h4>
+                                <div id="highestTrackCard">
+                                    <!-- Highest track card will be displayed here -->
+                                </div>
+                            </div>
+                            <div class="tendency-card tendency-card-large">
+                                <h4>Lowest Rated Track</h4>
+                                <div id="lowestTrackCard">
+                                    <!-- Lowest track card will be displayed here -->
+                                </div>
+                            </div>
+                            <div class="tendency-card">
+                                <h4>Most Common Rating</h4>
+                                <p class="tendency-score" id="mostCommon">-</p>
+                            </div>
+                            <div class="tendency-card">
+                                <h4>Rating Style</h4>
+                                <p id="ratingStyle">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state">
+                    <p>📊 Select a participant to view their stats</p>
                 </div>
 
-                <!-- Dream & Nightmare Albums -->
-                <div class="stats-section">
-                    <h3>🌟 Dream Album</h3>
-                    <p class="stats-section-subtitle">Your top 10 rated tracks across all albums</p>
-                    <div id="dreamAlbum" class="dream-album-list">
-                        <!-- Dream tracks will be generated here -->
-                    </div>
+                <!-- No Data State -->
+                <div id="noDataState" class="empty-state" style="display: none;">
+                    <p>📊 This participant hasn't rated any albums yet</p>
+                    <a href="create-party.html" class="btn btn-primary">Create Listening Party</a>
                 </div>
-
-                <div class="stats-section">
-                    <h3>💀 Nightmare Album</h3>
-                    <p class="stats-section-subtitle">Your bottom 10 rated tracks</p>
-                    <div id="nightmareAlbum" class="dream-album-list">
-                        <!-- Nightmare tracks will be generated here -->
-                    </div>
-                </div>
-
-                <!-- More Personal Stats -->
-                <div class="stats-section">
-                    <h3>🤝 Social Stats</h3>
-                    <div class="social-stats-grid">
-                        <div class="social-stat-card">
-                            <h4>Taste Twin</h4>
-                            <div id="tasteTwin">-</div>
-                            <span class="social-stat-value" id="tasteTwinScore">-</span>
-                        </div>
-                        <div class="social-stat-card">
-                            <h4>Biggest Disagreement</h4>
-                            <div id="biggestDisagreement">-</div>
-                            <span class="social-stat-value" id="disagreementDiff">-</span>
-                        </div>
-                        <div class="social-stat-card">
-                            <h4>Contrarian Pick</h4>
-                            <div id="contrarianPick">-</div>
-                            <span class="social-stat-value" id="contrarianDiff">-</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Rating Distribution -->
-                <div class="stats-section">
-                    <h3>Rating Distribution</h3>
-                    <div id="ratingDistribution" class="rating-distribution">
-                        <!-- Distribution bars will be generated here -->
-                    </div>
-                </div>
-
-                <!-- Albums Participated In -->
-                <div class="stats-section">
-                    <h3>Albums Participated In</h3>
-                    <div id="participatedAlbums" class="participated-albums">
-                        <!-- Album list will be generated here -->
-                    </div>
-                </div>
-
-                <!-- Rating Comparison -->
-                <div class="stats-section">
-                    <h3>Rating Tendencies</h3>
-                    <div class="tendencies-grid">
-                        <div class="tendency-card">
-                            <h4>Highest Rated Track</h4>
-                            <p id="highestTrack">-</p>
-                            <p class="tendency-score" id="highestScore">-</p>
-                        </div>
-                        <div class="tendency-card">
-                            <h4>Lowest Rated Track</h4>
-                            <p id="lowestTrack">-</p>
-                            <p class="tendency-score" id="lowestScore">-</p>
-                        </div>
-                        <div class="tendency-card">
-                            <h4>Most Common Rating</h4>
-                            <p class="tendency-score" id="mostCommon">-</p>
-                        </div>
-                        <div class="tendency-card">
-                            <h4>Rating Style</h4>
-                            <p id="ratingStyle">-</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Empty State -->
-            <div id="emptyState" class="empty-state">
-                <p>📊 Select a participant to view their stats</p>
-            </div>
-
-            <!-- No Data State -->
-            <div id="noDataState" class="empty-state" style="display: none;">
-                <p>📊 This participant hasn't rated any albums yet</p>
-                <a href="create-party.html" class="btn btn-primary">Create Listening Party</a>
-            </div>
             </div>
 
             <!-- Global Stats Tab -->

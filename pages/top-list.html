@@ -10,8 +10,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>🏆 Top Rated Albums</h1>
-            <p>The highest rated albums from your listening parties</p>
+            <h1>🏆 Top Rankings</h1>
+            <p>The best albums and tracks from your listening parties</p>
         </header>
 
         <nav class="main-nav">
@@ -24,64 +24,127 @@
         </nav>
 
         <main>
-            <!-- Top 3 Podium -->
-            <section id="podiumSection" class="podium-section" style="display: none;">
-                <div class="podium">
-                    <!-- 2nd Place -->
-                    <div class="podium-place second" id="podium2">
-                        <div class="podium-rank">🥈</div>
-                        <div class="podium-album-cover"></div>
-                        <div class="podium-info">
-                            <h3 class="podium-title"></h3>
-                            <p class="podium-artist"></p>
-                            <div class="podium-score"></div>
-                        </div>
-                        <div class="podium-base">2</div>
-                    </div>
-                    
-                    <!-- 1st Place -->
-                    <div class="podium-place first" id="podium1">
-                        <div class="podium-rank">🥇</div>
-                        <div class="podium-album-cover"></div>
-                        <div class="podium-info">
-                            <h3 class="podium-title"></h3>
-                            <p class="podium-artist"></p>
-                            <div class="podium-score"></div>
-                        </div>
-                        <div class="podium-base">1</div>
-                    </div>
-                    
-                    <!-- 3rd Place -->
-                    <div class="podium-place third" id="podium3">
-                        <div class="podium-rank">🥉</div>
-                        <div class="podium-album-cover"></div>
-                        <div class="podium-info">
-                            <h3 class="podium-title"></h3>
-                            <p class="podium-artist"></p>
-                            <div class="podium-score"></div>
-                        </div>
-                        <div class="podium-base">3</div>
-                    </div>
-                </div>
+            <!-- Tab Navigation -->
+            <section class="stats-tabs" id="topTabs" style="display: none;">
+                <button class="stats-tab active" id="albumsTab">Top Albums</button>
+                <button class="stats-tab" id="tracksTab">Top Tracks</button>
             </section>
 
-            <!-- Full Rankings List -->
-            <section class="rankings-section">
-                <h2>Complete Rankings</h2>
-                <div id="rankingsList" class="rankings-list">
-                    <!-- Rankings will be loaded here -->
-                </div>
+            <!-- Albums Tab Content -->
+            <div id="albumsTabContent" class="top-tab-content active">
+                <!-- Top 3 Podium -->
+                <section id="podiumSection" class="podium-section" style="display: none;">
+                    <div class="podium">
+                        <!-- 2nd Place -->
+                        <div class="podium-place second" id="podium2">
+                            <div class="podium-rank">🥈</div>
+                            <div class="podium-album-cover"></div>
+                            <div class="podium-info">
+                                <h3 class="podium-title"></h3>
+                                <p class="podium-artist"></p>
+                                <div class="podium-score"></div>
+                            </div>
+                            <div class="podium-base">2</div>
+                        </div>
+                        
+                        <!-- 1st Place -->
+                        <div class="podium-place first" id="podium1">
+                            <div class="podium-rank">🥇</div>
+                            <div class="podium-album-cover"></div>
+                            <div class="podium-info">
+                                <h3 class="podium-title"></h3>
+                                <p class="podium-artist"></p>
+                                <div class="podium-score"></div>
+                            </div>
+                            <div class="podium-base">1</div>
+                        </div>
+                        
+                        <!-- 3rd Place -->
+                        <div class="podium-place third" id="podium3">
+                            <div class="podium-rank">🥉</div>
+                            <div class="podium-album-cover"></div>
+                            <div class="podium-info">
+                                <h3 class="podium-title"></h3>
+                                <p class="podium-artist"></p>
+                                <div class="podium-score"></div>
+                            </div>
+                            <div class="podium-base">3</div>
+                        </div>
+                    </div>
+                </section>
 
-                <div id="emptyState" class="empty-state" style="display: none;">
-                    <p>🏆 No completed albums yet</p>
-                    <p class="empty-state-subtitle">Complete some listening parties to see rankings!</p>
-                    <a href="create-party.html" class="btn btn-primary">Create Listening Party</a>
-                </div>
+                <!-- Full Rankings List -->
+                <section class="rankings-section">
+                    <h2>Complete Album Rankings</h2>
+                    <div id="rankingsList" class="rankings-list">
+                        <!-- Rankings will be loaded here -->
+                    </div>
+                </section>
+            </div>
 
-                <div id="loadingState" class="loading-state">
-                    <p>Loading rankings...</p>
-                </div>
-            </section>
+            <!-- Tracks Tab Content -->
+            <div id="tracksTabContent" class="top-tab-content">
+                <!-- Top 3 Tracks Podium -->
+                <section id="tracksPodiumSection" class="podium-section" style="display: none;">
+                    <div class="podium">
+                        <!-- 2nd Place -->
+                        <div class="podium-place second" id="trackPodium2">
+                            <div class="podium-rank">🥈</div>
+                            <div class="podium-album-cover"></div>
+                            <div class="podium-info">
+                                <h3 class="podium-title"></h3>
+                                <p class="podium-artist"></p>
+                                <div class="podium-score"></div>
+                            </div>
+                            <div class="podium-base">2</div>
+                        </div>
+                        
+                        <!-- 1st Place -->
+                        <div class="podium-place first" id="trackPodium1">
+                            <div class="podium-rank">🥇</div>
+                            <div class="podium-album-cover"></div>
+                            <div class="podium-info">
+                                <h3 class="podium-title"></h3>
+                                <p class="podium-artist"></p>
+                                <div class="podium-score"></div>
+                            </div>
+                            <div class="podium-base">1</div>
+                        </div>
+                        
+                        <!-- 3rd Place -->
+                        <div class="podium-place third" id="trackPodium3">
+                            <div class="podium-rank">🥉</div>
+                            <div class="podium-album-cover"></div>
+                            <div class="podium-info">
+                                <h3 class="podium-title"></h3>
+                                <p class="podium-artist"></p>
+                                <div class="podium-score"></div>
+                            </div>
+                            <div class="podium-base">3</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rankings-section">
+                    <h2>🎵 Complete Track Rankings</h2>
+                    <p class="section-subtitle">The highest rated individual tracks across all albums</p>
+                    <div id="topTracksList" class="rankings-list">
+                        <!-- Top tracks will be loaded here -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <p>🏆 No completed albums yet</p>
+                <p class="empty-state-subtitle">Complete some listening parties to see rankings!</p>
+                <a href="create-party.html" class="btn btn-primary">Create Listening Party</a>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <p>Loading rankings...</p>
+            </div>
         </main>
     </div>
 
@@ -93,7 +156,6 @@
     <!-- App Scripts -->
     <script src="../js/firebase-config.js"></script>
     <script src="../js/app.js"></script>
-    
     <script src="../js/toplist.js"></script>
 </body>
 </html>

@@ -2699,3 +2699,767 @@ header p {
         font-size: 1.2rem;
     }
 }
+
+/* Dream & Nightmare Album Styles */
+.dream-album-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dream-track-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--surface-light);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dream-track-item:hover {
+    transform: translateX(10px);
+    border-color: var(--primary-color);
+}
+
+.dream-track-rank {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    min-width: 60px;
+    text-align: center;
+}
+
+.dream-track-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.dream-track-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dream-track-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2rem;
+}
+
+.dream-track-info {
+    flex: 1;
+}
+
+.dream-track-info strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.dream-track-album {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.dream-track-score {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 12px;
+    min-width: 100px;
+    text-align: center;
+}
+
+/* Social Stats Styles */
+.social-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.social-stat-card {
+    background: var(--surface-light);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+}
+
+.social-stat-card h4 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.social-stat-album {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.social-stat-album:hover {
+    transform: translateX(5px);
+    border: 2px solid var(--primary-color);
+}
+
+.social-stat-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.social-stat-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.social-stat-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2rem;
+}
+
+.social-stat-info {
+    flex: 1;
+}
+
+.social-stat-info strong {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.social-stat-info span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.social-stat-value {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+/* Leaderboard Styles for Global Stats */
+.leaderboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.leaderboard-card {
+    background: var(--surface-light);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.leaderboard-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.leaderboard-card h4 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.leaderboard-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.leaderboard-result {
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.leaderboard-result strong {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .dream-track-item {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 15px;
+    }
+
+    .dream-track-rank {
+        font-size: 1.4rem;
+        min-width: 30px;
+    }
+
+    .dream-track-cover {
+        width: 60px;
+        height: 60px;
+    }
+
+    .dream-track-score {
+        width: 100%;
+        font-size: 1.3rem;
+    }
+
+    .social-stats-grid,
+    .leaderboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .social-stat-album {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .social-stat-cover {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* Global Stats Album Cards */
+.global-stat-album {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.global-stat-album:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.global-stat-cover {
+    width: 70px;
+    height: 70px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.global-stat-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.global-stat-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 1.5rem;
+}
+
+.global-stat-info {
+    flex: 1;
+}
+
+.global-stat-info strong {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.global-stat-info span {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+}
+
+.global-stat-detail {
+    color: var(--primary-color) !important;
+    font-weight: 600;
+    margin-top: 5px !important;
+}
+
+/* Responsive for global album cards */
+@media (max-width: 768px) {
+    .global-stat-album {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .global-stat-cover {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* Taste Twin Display with Profile Picture */
+.taste-twin-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+}
+
+.taste-twin-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--primary-color);
+}
+
+.taste-twin-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.taste-twin-avatar .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+}
+
+/* Leaderboard Participant Display */
+.leaderboard-participant {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.leaderboard-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.leaderboard-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-small {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+}
+
+.leaderboard-stat {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.leaderboard-participant strong {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .taste-twin-avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .leaderboard-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .leaderboard-participant {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+}
+
+/* Top Tab Content */
+.top-tab-content {
+    display: none;
+}
+
+.top-tab-content.active {
+    display: block;
+}
+
+.section-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+/* Track Ranking Items */
+.track-ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--surface-light);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.track-ranking-item:hover {
+    transform: translateX(10px);
+    border-color: var(--primary-color);
+}
+
+.track-ranking-item.top-three {
+    background: linear-gradient(90deg, var(--surface-light), rgba(99, 102, 241, 0.1));
+}
+
+/* Track ranking tier borders */
+.track-ranking-item.trash {
+    border-color: var(--trash);
+}
+
+.track-ranking-item.mid {
+    border-color: var(--mid);
+}
+
+.track-ranking-item.good {
+    border-color: var(--good);
+}
+
+.track-ranking-item.epic {
+    border-color: var(--epic);
+}
+
+.track-ranking-item.legendary {
+    border-color: var(--legendary);
+}
+
+.track-ranking-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    min-width: 60px;
+    text-align: center;
+}
+
+.track-ranking-number.medal {
+    font-size: 3rem;
+}
+
+.track-ranking-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.track-ranking-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.track-ranking-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2rem;
+}
+
+.track-ranking-info {
+    flex: 1;
+}
+
+.track-ranking-info h3 {
+    margin: 0 0 5px 0;
+    color: var(--text-primary);
+}
+
+.track-ranking-info p {
+    margin: 0 0 10px 0;
+    color: var(--text-secondary);
+}
+
+.track-ranking-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.track-ranking-score {
+    font-size: 2rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 12px;
+    min-width: 100px;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .track-ranking-item {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .track-ranking-number {
+        min-width: 50px;
+        font-size: 1.5rem;
+    }
+
+    .track-ranking-number.medal {
+        font-size: 2rem;
+    }
+
+    .track-ranking-cover {
+        width: 60px;
+        height: 60px;
+    }
+
+    .track-ranking-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .track-ranking-score {
+        width: 100%;
+        font-size: 1.5rem;
+    }
+}
+
+/* Favorite Album Card */
+.favorite-album-card {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.favorite-album-card:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.favorite-album-cover {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.favorite-album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.favorite-album-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2rem;
+}
+
+.favorite-album-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.favorite-album-info strong {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.favorite-album-info span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.favorite-album-score {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+/* Tendency Track Cards */
+.tendency-card-large {
+    grid-column: span 1;
+}
+
+.tendency-track-card {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.tendency-track-card:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.tendency-track-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.tendency-track-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tendency-track-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 1.5rem;
+}
+
+.tendency-track-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tendency-track-info strong {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.tendency-track-info span {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.tendency-track-score {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .favorite-album-card,
+    .tendency-track-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .favorite-album-cover {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .tendency-track-cover {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .tendencies-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tendency-card-large {
+        grid-column: span 1;
+    }
+}

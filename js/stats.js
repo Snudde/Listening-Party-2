@@ -249,18 +249,35 @@ function calculateStandardDeviation(values) {
 }
 
 // Display statistics
+
 function displayStats(stats, albums) {
     // Overview cards
     document.getElementById('avgRating').textContent = stats.avgRating;
     document.getElementById('albumsRated').textContent = stats.albumsRated;
     document.getElementById('tracksRated').textContent = stats.tracksRated;
     
+    // Favorite Album - Display as card
     if (stats.favoriteAlbum) {
-        document.getElementById('favoriteAlbum').textContent = stats.favoriteAlbum.title;
-        document.getElementById('favoriteScore').textContent = `${stats.favoriteAlbum.artist} - Avg: ${stats.favoriteAlbum.score}`;
+        const favoriteAlbumData = albums.find(a => a.title === stats.favoriteAlbum.title);
+        if (favoriteAlbumData) {
+            document.getElementById('favoriteAlbumCard').innerHTML = `
+                <div class="favorite-album-card" onclick="window.location.href='albums.html?id=${favoriteAlbumData.id}'">
+                    <div class="favorite-album-cover">
+                        ${favoriteAlbumData.coverImage 
+                            ? `<img src="${favoriteAlbumData.coverImage}" alt="${favoriteAlbumData.title}">` 
+                            : `<div class="favorite-album-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="favorite-album-info">
+                        <strong>${stats.favoriteAlbum.title}</strong>
+                        <span>${stats.favoriteAlbum.artist}</span>
+                        <span class="favorite-album-score ${getScoreClass(parseFloat(stats.favoriteAlbum.score))}">${stats.favoriteAlbum.score}</span>
+                    </div>
+                </div>
+            `;
+        }
     } else {
-        document.getElementById('favoriteAlbum').textContent = '-';
-        document.getElementById('favoriteScore').textContent = '-';
+        document.getElementById('favoriteAlbumCard').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No favorite album yet</p>';
     }
     
     // Rating distribution
@@ -269,15 +286,52 @@ function displayStats(stats, albums) {
     // Albums participated in
     displayParticipatedAlbums(albums);
     
-    // Tendencies
+    // Tendencies - Highest Rated Track
     if (stats.highestRated) {
-        document.getElementById('highestTrack').textContent = `${stats.highestRated.track} (${stats.highestRated.album})`;
-        document.getElementById('highestScore').textContent = stats.highestRated.rating;
+        const highestAlbumData = albums.find(a => a.title === stats.highestRated.album);
+        if (highestAlbumData) {
+            document.getElementById('highestTrackCard').innerHTML = `
+                <div class="tendency-track-card" onclick="window.location.href='albums.html?id=${highestAlbumData.id}'">
+                    <div class="tendency-track-cover">
+                        ${highestAlbumData.coverImage 
+                            ? `<img src="${highestAlbumData.coverImage}" alt="${highestAlbumData.title}">` 
+                            : `<div class="tendency-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="tendency-track-info">
+                        <strong>${stats.highestRated.track}</strong>
+                        <span>${stats.highestRated.album} - ${stats.highestRated.artist}</span>
+                        <span class="tendency-track-score ${getScoreClass(stats.highestRated.rating)}">${formatScore(stats.highestRated.rating)}</span>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        document.getElementById('highestTrackCard').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">-</p>';
     }
     
+    // Tendencies - Lowest Rated Track
     if (stats.lowestRated) {
-        document.getElementById('lowestTrack').textContent = `${stats.lowestRated.track} (${stats.lowestRated.album})`;
-        document.getElementById('lowestScore').textContent = stats.lowestRated.rating;
+        const lowestAlbumData = albums.find(a => a.title === stats.lowestRated.album);
+        if (lowestAlbumData) {
+            document.getElementById('lowestTrackCard').innerHTML = `
+                <div class="tendency-track-card" onclick="window.location.href='albums.html?id=${lowestAlbumData.id}'">
+                    <div class="tendency-track-cover">
+                        ${lowestAlbumData.coverImage 
+                            ? `<img src="${lowestAlbumData.coverImage}" alt="${lowestAlbumData.title}">` 
+                            : `<div class="tendency-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="tendency-track-info">
+                        <strong>${stats.lowestRated.track}</strong>
+                        <span>${stats.lowestRated.album} - ${stats.lowestRated.artist}</span>
+                        <span class="tendency-track-score ${getScoreClass(stats.lowestRated.rating)}">${formatScore(stats.lowestRated.rating)}</span>
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        document.getElementById('lowestTrackCard').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">-</p>';
     }
     
     document.getElementById('mostCommon').textContent = stats.mostCommon;
@@ -429,37 +483,57 @@ async function displaySocialStats(participantId, albums, userRatings) {
     
     // Find taste twin (most agreement)
     let tasteTwin = null;
-    let lowestDiff = Infinity;
+let tasteTwinData = null;
+let lowestDiff = Infinity;
+
+for (const otherId of allParticipants) {
+    let totalDiff = 0;
+    let comparisons = 0;
     
-    for (const otherId of allParticipants) {
-        let totalDiff = 0;
-        let comparisons = 0;
-        
-        albums.forEach(album => {
-            if (album.participants.includes(participantId) && album.participants.includes(otherId)) {
-                album.tracks.forEach(track => {
-                    const userRating = album.ratings?.[track.number]?.[participantId];
-                    const otherRating = album.ratings?.[track.number]?.[otherId];
-                    if (userRating !== null && userRating !== undefined && otherRating !== null && otherRating !== undefined) {
-                        totalDiff += Math.abs(userRating - otherRating);
-                        comparisons++;
-                    }
-                });
-            }
-        });
-        
-        if (comparisons > 0) {
-            const avgDiff = totalDiff / comparisons;
-            if (avgDiff < lowestDiff) {
-                lowestDiff = avgDiff;
-                const doc = await db.collection('participants').doc(otherId).get();
-                tasteTwin = doc.data().username;
-            }
+    albums.forEach(album => {
+        if (album.participants.includes(participantId) && album.participants.includes(otherId)) {
+            album.tracks.forEach(track => {
+                const userRating = album.ratings?.[track.number]?.[participantId];
+                const otherRating = album.ratings?.[track.number]?.[otherId];
+                if (userRating !== null && userRating !== undefined && otherRating !== null && otherRating !== undefined) {
+                    totalDiff += Math.abs(userRating - otherRating);
+                    comparisons++;
+                }
+            });
+        }
+    });
+    
+    if (comparisons > 0) {
+        const avgDiff = totalDiff / comparisons;
+        if (avgDiff < lowestDiff) {
+            lowestDiff = avgDiff;
+            const doc = await db.collection('participants').doc(otherId).get();
+            const data = doc.data();
+            tasteTwinData = {
+                username: data.username,
+                profilePicture: data.profilePicture || ''
+            };
         }
     }
-    
-    document.getElementById('tasteTwin').innerHTML = `<p style="text-align: center;">${tasteTwin || 'N/A'}</p>`;
+}
+
+if (tasteTwinData) {
+    document.getElementById('tasteTwin').innerHTML = `
+        <div class="taste-twin-display">
+            <div class="taste-twin-avatar">
+                ${tasteTwinData.profilePicture 
+                    ? `<img src="${tasteTwinData.profilePicture}" alt="${tasteTwinData.username}">` 
+                    : `<div class="avatar-placeholder">${tasteTwinData.username.charAt(0).toUpperCase()}</div>`
+                }
+            </div>
+            <strong>${tasteTwinData.username}</strong>
+        </div>
+    `;
     document.getElementById('tasteTwinScore').textContent = lowestDiff !== Infinity ? `Avg diff: ${lowestDiff.toFixed(2)}` : '';
+} else {
+    document.getElementById('tasteTwin').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No other participants</p>';
+    document.getElementById('tasteTwinScore').textContent = '';
+}
     
     // Find biggest disagreement (single track with biggest diff from average)
     let biggestDisagreement = null;
@@ -645,40 +719,88 @@ async function loadGlobalStats() {
         
         // Display participant leaderboards
         const statsArray = Object.values(participantStats).filter(s => s.allRatings.length > 0);
+
+// Get full participant data with profile pictures
+const participantDataMap = {};
+participants.forEach(p => {
+    participantDataMap[p.id] = p;
+});
+
+// Helper function to create participant display HTML
+function createParticipantDisplay(participantName) {
+    const participant = participants.find(p => p.username === participantName);
+    if (!participant) return `<strong>${participantName}</strong>`;
+    
+    return `
+        <div class="leaderboard-participant">
+            <div class="leaderboard-avatar">
+                ${participant.profilePicture 
+                    ? `<img src="${participant.profilePicture}" alt="${participantName}">` 
+                    : `<div class="avatar-placeholder-small">${participantName.charAt(0).toUpperCase()}</div>`
+                }
+            </div>
+            <strong>${participantName}</strong>
+        </div>
+    `;
+}
+
+// Biggest Fan
+const biggestFan = statsArray.reduce((max, p) => p.average > max.average ? p : max);
+document.getElementById('biggestFan').innerHTML = `
+    ${createParticipantDisplay(biggestFan.name)}
+    <span class="leaderboard-stat">${biggestFan.average.toFixed(2)} avg</span>
+`;
+
+// Harshest Critic
+const harshestCritic = statsArray.reduce((min, p) => p.average < min.average ? p : min);
+document.getElementById('harshestCritic').innerHTML = `
+    ${createParticipantDisplay(harshestCritic.name)}
+    <span class="leaderboard-stat">${harshestCritic.average.toFixed(2)} avg</span>
+`;
+
+// Most Consistent
+const mostConsistent = statsArray.reduce((min, p) => p.variance < min.variance ? p : min);
+document.getElementById('mostConsistent').innerHTML = `
+    ${createParticipantDisplay(mostConsistent.name)}
+    <span class="leaderboard-stat">σ² = ${mostConsistent.variance.toFixed(2)}</span>
+`;
+
+// Most Diverse
+const mostDiverse = statsArray.reduce((max, p) => p.variance > max.variance ? p : max);
+document.getElementById('mostDiverse').innerHTML = `
+    ${createParticipantDisplay(mostDiverse.name)}
+    <span class="leaderboard-stat">σ² = ${mostDiverse.variance.toFixed(2)}</span>
+`;
+
+// Most Active
+const mostActive = statsArray.reduce((max, p) => p.albumCount > max.albumCount ? p : max);
+document.getElementById('mostActive').innerHTML = `
+    ${createParticipantDisplay(mostActive.name)}
+    <span class="leaderboard-stat">${mostActive.albumCount} albums</span>
+`;
+
+// Legendary Lover
+const legendaryLover = statsArray.reduce((max, p) => p.legendaryRatings > max.legendaryRatings ? p : max);
+document.getElementById('legendaryLover').innerHTML = `
+    ${createParticipantDisplay(legendaryLover.name)}
+    <span class="leaderboard-stat">${legendaryLover.legendaryRatings} ratings ≥ 9</span>
+`;
+
+// Track Executioner
+const trackExecutioner = statsArray.reduce((max, p) => p.lowRatings > max.lowRatings ? p : max);
+document.getElementById('trackExecutioner').innerHTML = `
+    ${createParticipantDisplay(trackExecutioner.name)}
+    <span class="leaderboard-stat">${trackExecutioner.lowRatings} ratings ≤ 3</span>
+`;
+
+// Perfect Score Giver
+const perfectScoreGiver = statsArray.reduce((max, p) => p.tens > max.tens ? p : max);
+document.getElementById('perfectScoreGiver').innerHTML = `
+    ${createParticipantDisplay(perfectScoreGiver.name)}
+    <span class="leaderboard-stat">${perfectScoreGiver.tens} perfect 10s</span>
+`;
         
-        // Biggest Fan
-        const biggestFan = statsArray.reduce((max, p) => p.average > max.average ? p : max);
-        document.getElementById('biggestFan').innerHTML = `<strong>${biggestFan.name}</strong><br>${biggestFan.average.toFixed(2)} avg`;
-        
-        // Harshest Critic
-        const harshestCritic = statsArray.reduce((min, p) => p.average < min.average ? p : min);
-        document.getElementById('harshestCritic').innerHTML = `<strong>${harshestCritic.name}</strong><br>${harshestCritic.average.toFixed(2)} avg`;
-        
-        // Most Consistent
-        const mostConsistent = statsArray.reduce((min, p) => p.variance < min.variance ? p : min);
-        document.getElementById('mostConsistent').innerHTML = `<strong>${mostConsistent.name}</strong><br>σ² = ${mostConsistent.variance.toFixed(2)}`;
-        
-        // Most Diverse
-        const mostDiverse = statsArray.reduce((max, p) => p.variance > max.variance ? p : max);
-        document.getElementById('mostDiverse').innerHTML = `<strong>${mostDiverse.name}</strong><br>σ² = ${mostDiverse.variance.toFixed(2)}`;
-        
-        // Most Active
-        const mostActive = statsArray.reduce((max, p) => p.albumCount > max.albumCount ? p : max);
-        document.getElementById('mostActive').innerHTML = `<strong>${mostActive.name}</strong><br>${mostActive.albumCount} albums`;
-        
-        // Legendary Lover
-        const legendaryLover = statsArray.reduce((max, p) => p.legendaryRatings > max.legendaryRatings ? p : max);
-        document.getElementById('legendaryLover').innerHTML = `<strong>${legendaryLover.name}</strong><br>${legendaryLover.legendaryRatings} ratings ≥ 9`;
-        
-        // Track Executioner
-        const trackExecutioner = statsArray.reduce((max, p) => p.lowRatings > max.lowRatings ? p : max);
-        document.getElementById('trackExecutioner').innerHTML = `<strong>${trackExecutioner.name}</strong><br>${trackExecutioner.lowRatings} ratings ≤ 3`;
-        
-        // Perfect Score Giver
-        const perfectScoreGiver = statsArray.reduce((max, p) => p.tens > max.tens ? p : max);
-        document.getElementById('perfectScoreGiver').innerHTML = `<strong>${perfectScoreGiver.name}</strong><br>${perfectScoreGiver.tens} perfect 10s`;
-        
-        // Album stats
+        // Album stats (with clickable albums)
         const albumStats = albums.map(album => {
             const allRatings = [];
             album.tracks.forEach(track => {
@@ -690,34 +812,93 @@ async function loadGlobalStats() {
             });
             
             return {
+                id: album.id,
                 title: album.title,
                 artist: album.artist,
+                coverImage: album.coverImage || '',
                 variance: calculateVariance(allRatings),
                 participantCount: album.participants.length,
                 averageScore: album.averageScore || 0
             };
         });
         
-        // Most Divisive
+  
+// Most Divisive
         const mostDivisive = albumStats.reduce((max, a) => a.variance > max.variance ? a : max);
-        document.getElementById('mostDivisive').innerHTML = `<strong>${mostDivisive.title}</strong><br>${mostDivisive.artist}<br>σ² = ${mostDivisive.variance.toFixed(2)}`;
+        document.getElementById('mostDivisive').innerHTML = `
+            <div class="global-stat-album" onclick="window.location.href='albums.html?id=${mostDivisive.id}'">
+                <div class="global-stat-cover">
+                    ${mostDivisive.coverImage 
+                        ? `<img src="${mostDivisive.coverImage}" alt="${mostDivisive.title}">` 
+                        : `<div class="global-stat-placeholder">🎵</div>`
+                    }
+                </div>
+                <div class="global-stat-info">
+                    <strong>${mostDivisive.title}</strong>
+                    <span>${mostDivisive.artist}</span>
+                    <span class="global-stat-detail">σ² = ${mostDivisive.variance.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
         
         // Most Agreed Upon
         const mostAgreed = albumStats.reduce((min, a) => a.variance < min.variance ? a : min);
-        document.getElementById('mostAgreed').innerHTML = `<strong>${mostAgreed.title}</strong><br>${mostAgreed.artist}<br>σ² = ${mostAgreed.variance.toFixed(2)}`;
+        document.getElementById('mostAgreed').innerHTML = `
+            <div class="global-stat-album" onclick="window.location.href='albums.html?id=${mostAgreed.id}'">
+                <div class="global-stat-cover">
+                    ${mostAgreed.coverImage 
+                        ? `<img src="${mostAgreed.coverImage}" alt="${mostAgreed.title}">` 
+                        : `<div class="global-stat-placeholder">🎵</div>`
+                    }
+                </div>
+                <div class="global-stat-info">
+                    <strong>${mostAgreed.title}</strong>
+                    <span>${mostAgreed.artist}</span>
+                    <span class="global-stat-detail">σ² = ${mostAgreed.variance.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
         
         // Hidden Gem (high score, few participants)
         const hiddenGems = albumStats.filter(a => a.averageScore >= 8).sort((a, b) => a.participantCount - b.participantCount);
         if (hiddenGems.length > 0) {
             const hiddenGem = hiddenGems[0];
-            document.getElementById('hiddenGem').innerHTML = `<strong>${hiddenGem.title}</strong><br>${hiddenGem.artist}<br>${hiddenGem.averageScore.toFixed(1)} (${hiddenGem.participantCount} participants)`;
+            document.getElementById('hiddenGem').innerHTML = `
+                <div class="global-stat-album" onclick="window.location.href='albums.html?id=${hiddenGem.id}'">
+                    <div class="global-stat-cover">
+                        ${hiddenGem.coverImage 
+                            ? `<img src="${hiddenGem.coverImage}" alt="${hiddenGem.title}">` 
+                            : `<div class="global-stat-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="global-stat-info">
+                        <strong>${hiddenGem.title}</strong>
+                        <span>${hiddenGem.artist}</span>
+                        <span class="global-stat-detail">${hiddenGem.averageScore.toFixed(1)} (${hiddenGem.participantCount} participants)</span>
+                    </div>
+                </div>
+            `;
         } else {
             document.getElementById('hiddenGem').textContent = 'No hidden gems yet';
         }
         
         // Crowd Favorite
         const crowdFavorite = albumStats.reduce((max, a) => a.participantCount > max.participantCount ? a : max);
-        document.getElementById('crowdFavorite').innerHTML = `<strong>${crowdFavorite.title}</strong><br>${crowdFavorite.artist}<br>${crowdFavorite.participantCount} participants`;
+        document.getElementById('crowdFavorite').innerHTML = `
+            <div class="global-stat-album" onclick="window.location.href='albums.html?id=${crowdFavorite.id}'">
+                <div class="global-stat-cover">
+                    ${crowdFavorite.coverImage 
+                        ? `<img src="${crowdFavorite.coverImage}" alt="${crowdFavorite.title}">` 
+                        : `<div class="global-stat-placeholder">🎵</div>`
+                    }
+                </div>
+                <div class="global-stat-info">
+                    <strong>${crowdFavorite.title}</strong>
+                    <span>${crowdFavorite.artist}</span>
+                    <span class="global-stat-detail">${crowdFavorite.participantCount} participants</span>
+                </div>
+            </div>
+        `;
         
         console.log('✅ Global stats calculated');
     } catch (error) {
@@ -732,3 +913,4 @@ function calculateVariance(values) {
     const squareDiffs = values.map(value => Math.pow(value - avg, 2));
     return squareDiffs.reduce((a, b) => a + b, 0) / values.length;
 }
+
