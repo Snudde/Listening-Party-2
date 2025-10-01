@@ -74,6 +74,28 @@
 
 }
 
+.active .step-number {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 20px rgb(99 102 241);
+    animation: radiateStep 2s infinite 
+ease-in-out;
+}
+
+@keyframes radiateStep {
+  0% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+                0 0 20px rgb(99 102 241);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+                0 0 40px rgba(168, 85, 247, 0.9),
+                0 0 80px rgb(99 102 241);
+  }
+  100% {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2),
+                0 0 20px rgb(99 102 241);
+  }
+}
+
 
 /* Keyframes for sweeping shine */
 @keyframes shine {
@@ -111,26 +133,30 @@
     font-size: 50px;
 }
 
-.album-card.good .album-card-info {
+.album-card.good {
     background-color: var(--good);
 }
 
-.album-card.trash .album-card-info {
+.album-card.trash  {
     background-color: var(--trash);
 }
 
-.album-card.mid .album-card-info {
+.album-card.mid  {
     background-color: var(--mid);
 }
 
-.album-card.epic .album-card-info {
+.album-card.epic  {
     background-color: var(--epic);
 }
 
-.album-card.legendary .album-card-info {
+.album-card.legendary  {
     background-color: var(--legendary);
 }
 
 .album-card-score {
   border: 1px solid #fff;
+}
+
+.track-ratings-list {
+  display: none;
 }

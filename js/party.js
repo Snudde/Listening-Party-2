@@ -1,5 +1,3 @@
-// Party Creation & Rating JavaScript
-
 // State management
 let partyData = {
     albumTitle: '',
@@ -10,10 +8,13 @@ let partyData = {
     participants: [],
     ratings: {},
     albumId: null,
-    isCompleted: false
+    isCompleted: false,
+    spotifyId: null // New: Store Spotify ID for reference
 };
 
 let currentStep = 1;
+let searchTimeout = null;
+let useSpotify = false; // Toggle between manual and Spotify
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎵 Party creation page loaded');
@@ -25,16 +26,237 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('albumCover').addEventListener('change', handleCoverPreview);
     document.getElementById('calculateResultsBtn').addEventListener('click', calculateResults);
     
+    // Spotify integration handlers
+    const manualEntry = document.getElementById('manualEntry');
+    const spotifyEntry = document.getElementById('spotifyEntry');
+    
+    manualEntry.addEventListener('change', handleEntryMethodToggle);
+    spotifyEntry.addEventListener('change', handleEntryMethodToggle);
+    
+    document.getElementById('spotifySearch').addEventListener('input', handleSpotifySearch);
+    
     // Load participants for step 3
     loadParticipantsForSelection();
 });
+
+// Handle toggle between manual and Spotify entry
+function handleEntryMethodToggle(e) {
+    useSpotify = e.target.value === 'spotify';
+    
+    const manualFields = document.getElementById('manualFields');
+    const spotifyFields = document.getElementById('spotifyFields');
+    
+    if (useSpotify) {
+        manualFields.style.display = 'none';
+        spotifyFields.style.display = 'block';
+        // Clear manual fields
+        document.getElementById('albumTitle').value = '';
+        document.getElementById('artistName').value = '';
+        document.getElementById('trackCount').value = '';
+    } else {
+        manualFields.style.display = 'block';
+        spotifyFields.style.display = 'none';
+        // Clear Spotify search
+        document.getElementById('spotifySearch').value = '';
+        document.getElementById('spotifyResults').innerHTML = '';
+    }
+}
+
+// Handle Spotify search with debouncing
+function handleSpotifySearch(e) {
+    const query = e.target.value.trim();
+    
+    // Clear previous timeout
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // Show loading indicator
+    const resultsDiv = document.getElementById('spotifyResults');
+    
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    resultsDiv.innerHTML = '<div class="search-loading">Searching Spotify...</div>';
+    
+    // Debounce search by 500ms
+    searchTimeout = setTimeout(async () => {
+        try {
+            const results = await window.spotifyAPI.searchAlbums(query);
+            displaySpotifyResults(results);
+        } catch (error) {
+            console.error('Search error:', error);
+            resultsDiv.innerHTML = '<div class="search-error">⚠️ Error searching Spotify. Check your API credentials.</div>';
+        }
+    }, 500);
+}
+
+// Display Spotify search results
+function displaySpotifyResults(albums) {
+    const resultsDiv = document.getElementById('spotifyResults');
+    
+    if (albums.length === 0) {
+        resultsDiv.innerHTML = '<div class="search-empty">No albums found. Try a different search.</div>';
+        return;
+    }
+    
+    resultsDiv.innerHTML = '';
+    
+    albums.forEach(album => {
+        const resultCard = document.createElement('div');
+        resultCard.className = 'spotify-result-card';
+        resultCard.onclick = () => selectSpotifyAlbum(album.id);
+        
+        resultCard.innerHTML = `
+            <div class="spotify-result-cover">
+                ${album.coverImageMedium 
+                    ? `<img src="${album.coverImageMedium}" alt="${album.title}">` 
+                    : '<div class="placeholder-cover">🎵</div>'
+                }
+            </div>
+            <div class="spotify-result-info">
+                <h4>${album.title}</h4>
+                <p>${album.artist}</p>
+                <span class="track-count">${album.totalTracks} tracks • ${album.releaseDate.split('-')[0]}</span>
+            </div>
+            <div class="select-indicator">Select →</div>
+        `;
+        
+        resultsDiv.appendChild(resultCard);
+    });
+}
+
+// Handle album selection from Spotify
+async function selectSpotifyAlbum(spotifyId) {
+    try {
+        // Show loading state
+        showNotification('Loading album details...', 'info');
+        
+        const albumDetails = await window.spotifyAPI.getAlbumDetails(spotifyId);
+        
+        // Populate party data
+        partyData.albumTitle = albumDetails.title;
+        partyData.artistName = albumDetails.artist;
+        partyData.trackCount = albumDetails.totalTracks;
+        partyData.tracks = albumDetails.tracks;
+        partyData.spotifyId = albumDetails.id;
+        
+        // Download and set cover image
+        if (albumDetails.coverImage) {
+            try {
+                const coverFile = await window.spotifyAPI.downloadCoverImage(albumDetails.coverImage);
+                const coverPath = `albums/${Date.now()}_${coverFile.name}`;
+                partyData.albumCover = await uploadImage(coverFile, coverPath);
+            } catch (error) {
+                console.error('Error downloading cover:', error);
+                // Continue anyway, just without the cover
+            }
+        }
+        
+        showNotification('✅ Album loaded from Spotify!', 'success');
+        
+        // Display preview
+        displaySpotifyPreview(albumDetails);
+        
+        // Show continue button
+        document.getElementById('spotifyContinueBtn').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading album:', error);
+        showNotification('Error loading album details', 'error');
+    }
+}
+
+// Display preview of selected Spotify album
+function displaySpotifyPreview(album) {
+    const previewDiv = document.getElementById('spotifyPreview');
+    previewDiv.style.display = 'block';
+    
+    previewDiv.innerHTML = `
+        <div class="spotify-preview-header">
+            <h3>✅ Album Selected</h3>
+            <button type="button" class="btn-icon" onclick="clearSpotifySelection()">✕</button>
+        </div>
+        <div class="spotify-preview-content">
+            <div class="preview-cover">
+                ${album.coverImage 
+                    ? `<img src="${album.coverImage}" alt="${album.title}">` 
+                    : '<div class="placeholder-cover-large">🎵</div>'
+                }
+            </div>
+            <div class="preview-info">
+                <h2>${album.title}</h2>
+                <p class="preview-artist">${album.artist}</p>
+                <div class="preview-meta">
+                    <span>🎵 ${album.totalTracks} tracks</span>
+                    <span>📅 ${album.releaseDate}</span>
+                </div>
+                <div class="preview-tracks">
+                    <h4>Tracks:</h4>
+                    <ol class="preview-track-list">
+                        ${album.tracks.slice(0, 5).map(track => `
+                            <li>${track.title} ${track.isInterlude ? '<span class="mini-badge">Interlude</span>' : ''}</li>
+                        `).join('')}
+                        ${album.tracks.length > 5 ? `<li class="more-tracks">...and ${album.tracks.length - 5} more</li>` : ''}
+                    </ol>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Clear Spotify selection
+function clearSpotifySelection() {
+    document.getElementById('spotifyPreview').style.display = 'none';
+    document.getElementById('spotifyContinueBtn').style.display = 'none';
+    document.getElementById('spotifySearch').value = '';
+    document.getElementById('spotifyResults').innerHTML = '';
+    
+    // Clear party data
+    partyData = {
+        albumTitle: '',
+        artistName: '',
+        trackCount: 0,
+        albumCover: '',
+        tracks: [],
+        participants: [],
+        ratings: {},
+        albumId: null,
+        isCompleted: false,
+        spotifyId: null
+    };
+}
+
+// Continue to step 2 with Spotify data
+function continueWithSpotify() {
+    if (!partyData.albumTitle || !partyData.tracks.length) {
+        showNotification('Please select an album first', 'error');
+        return;
+    }
+    
+    // Skip track entry step since we have tracks from Spotify
+    // Initialize ratings
+    initializeRatings();
+    
+    goToStep(3); // Go directly to participant selection
+}
+
+// Initialize ratings for tracks
+function initializeRatings() {
+    partyData.ratings = {};
+    partyData.tracks.forEach(track => {
+        partyData.ratings[track.number] = {};
+    });
+}
 
 // Generate rating options with half points
 function generateRatingOptions(currentRating) {
     const options = [];
     for (let i = 0; i <= 10; i += 0.5) {
         const value = i;
-        const display = i % 1 === 0 ? i.toFixed(0) : i.toFixed(1); // Show "5" or "5.5"
+        const display = i % 1 === 0 ? i.toFixed(0) : i.toFixed(1);
         const selected = currentRating === value ? 'selected' : '';
         options.push(`<option value="${value}" ${selected}>${display}</option>`);
     }
@@ -43,24 +265,27 @@ function generateRatingOptions(currentRating) {
 
 // Navigate between steps
 function goToStep(step) {
-    // Hide all steps
     document.querySelectorAll('.party-step').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.progress-step').forEach(s => s.classList.remove('active'));
     
-    // Show target step
     document.getElementById(`step${step}`).classList.add('active');
     document.querySelectorAll(`.progress-step[data-step="${step}"]`).forEach(s => s.classList.add('active'));
     
     currentStep = step;
-    
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Step 1: Handle Album Info
+// Step 1: Handle Album Info (Manual entry)
 async function handleAlbumInfo(e) {
     e.preventDefault();
     
+    if (useSpotify) {
+        // Spotify flow
+        continueWithSpotify();
+        return;
+    }
+    
+    // Manual entry flow
     partyData.albumTitle = document.getElementById('albumTitle').value.trim();
     partyData.artistName = document.getElementById('artistName').value.trim();
     partyData.trackCount = parseInt(document.getElementById('trackCount').value);
@@ -77,12 +302,11 @@ async function handleAlbumInfo(e) {
         }
     }
     
-    // Generate track input fields
     generateTrackInputs();
     goToStep(2);
 }
 
-// Generate track title inputs
+// Generate track title inputs (for manual entry)
 function generateTrackInputs() {
     const tracksList = document.getElementById('tracksList');
     tracksList.innerHTML = '';
@@ -98,7 +322,7 @@ function generateTrackInputs() {
     }
 }
 
-// Step 2: Handle Tracks
+// Step 2: Handle Tracks (Manual entry only)
 function handleTracks(e) {
     e.preventDefault();
     
@@ -197,7 +421,6 @@ async function handleParticipants(e) {
 async function savePartyToFirestore() {
     try {
         if (!partyData.albumId) {
-            // Create new album document
             const docRef = await db.collection('albums').add({
                 title: partyData.albumTitle,
                 artist: partyData.artistName,
@@ -208,12 +431,12 @@ async function savePartyToFirestore() {
                 ratings: partyData.ratings,
                 averageScore: 0,
                 isCompleted: false,
+                spotifyId: partyData.spotifyId || null,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             partyData.albumId = docRef.id;
             console.log('✅ Party created:', docRef.id);
         } else {
-            // Update existing
             await db.collection('albums').doc(partyData.albumId).update({
                 ratings: partyData.ratings,
                 tracks: partyData.tracks
@@ -228,7 +451,6 @@ async function savePartyToFirestore() {
 
 // Generate rating interface
 function generateRatingInterface() {
-    // Display album info
     document.getElementById('albumTitleDisplay').textContent = partyData.albumTitle;
     document.getElementById('artistNameDisplay').textContent = partyData.artistName;
     if (partyData.albumCover) {
@@ -263,7 +485,7 @@ function generateRatingInterface() {
     matrix.appendChild(headerRow);
     
     // Create track rows
-    partyData.tracks.forEach((track, index) => {
+    partyData.tracks.forEach(track => {
         const row = document.createElement('div');
         row.className = 'rating-row';
         row.innerHTML = `<div class="rating-cell track-cell"><strong>${track.number}.</strong> ${track.title}</div>`;
@@ -302,7 +524,6 @@ function generateRatingInterface() {
         checkbox.addEventListener('change', handleInterludeChange);
     });
     
-    // Calculate initial averages
     updateAllAverages();
 }
 
@@ -314,10 +535,7 @@ async function handleRatingChange(e) {
     
     partyData.ratings[trackNum][participantId] = value;
     
-    // Save to Firestore
     await savePartyToFirestore();
-    
-    // Update averages
     updateAllAverages();
     
     showNotification('Rating saved', 'success');
@@ -351,18 +569,8 @@ function updateAllAverages() {
     });
 }
 
-// Get CSS class based on score
-function getScoreClass(score) {
-    if (isNaN(score)) return '';
-    if (score >= 8) return 'score-high';
-    if (score >= 6) return 'score-medium';
-    if (score >= 4) return 'score-low';
-    return 'score-very-low';
-}
-
 // Calculate final results
 async function calculateResults() {
-    // Check if all ratings are complete
     let allComplete = true;
     for (const track of partyData.tracks) {
         for (const participant of partyData.participants) {
@@ -379,7 +587,6 @@ async function calculateResults() {
         if (!confirm) return;
     }
     
-    // Show countdown overlay
     showCountdownOverlay();
 }
 
@@ -394,7 +601,6 @@ function displayResults(albumAverage) {
         document.getElementById('resultAlbumCover').innerHTML = `<img src="${partyData.albumCover}" alt="Album Cover">`;
     }
     
-    // Display track ratings
     const trackList = document.getElementById('trackRatingsList');
     trackList.innerHTML = '';
     
@@ -414,14 +620,12 @@ function displayResults(albumAverage) {
         trackList.appendChild(trackItem);
     });
     
-    // Display full rating matrix
     const matrixDisplay = document.getElementById('ratingMatrixDisplay');
     matrixDisplay.innerHTML = '';
     
     const table = document.createElement('table');
     table.className = 'results-table';
     
-    // Header
     let headerHTML = '<thead><tr><th>Track</th>';
     partyData.participants.forEach(p => {
         headerHTML += `<th>${p.username}</th>`;
@@ -429,7 +633,6 @@ function displayResults(albumAverage) {
     headerHTML += '<th>Average</th></tr></thead>';
     table.innerHTML = headerHTML;
     
-    // Body
     let bodyHTML = '<tbody>';
     partyData.tracks.forEach(track => {
         bodyHTML += `<tr><td><strong>${track.number}.</strong> ${track.title}</td>`;
@@ -462,12 +665,8 @@ function handleCoverPreview(e) {
     }
 }
 
-// Make functions available globally
-window.goToStep = goToStep;
-
 // Countdown and reveal functions
 function showCountdownOverlay() {
-    // Create overlay
     const overlay = document.createElement('div');
     overlay.id = 'countdownOverlay';
     overlay.className = 'countdown-overlay';
@@ -480,7 +679,6 @@ function showCountdownOverlay() {
     `;
     document.body.appendChild(overlay);
     
-    // Start countdown
     let count = 3;
     const countdownEl = document.getElementById('countdownNumber');
     
@@ -503,7 +701,6 @@ async function showResultsReveal() {
     const overlay = document.getElementById('countdownOverlay');
     const content = overlay.querySelector('.countdown-content');
     
-    // Calculate the score
     const nonInterludeTracks = partyData.tracks.filter(t => !t.isInterlude);
     let albumTotal = 0;
     let albumCount = 0;
@@ -520,7 +717,6 @@ async function showResultsReveal() {
     const albumAverage = albumCount > 0 ? (albumTotal / albumCount).toFixed(2) : 0;
     const scoreClass = getScoreClass(parseFloat(albumAverage));
     
-    // Get tier name
     const tierNames = {
         'trash': '🗑️ TRASH',
         'mid': '🟢 MID',
@@ -530,7 +726,6 @@ async function showResultsReveal() {
     };
     const tierName = tierNames[scoreClass] || 'RATED';
     
-    // Show score reveal
     content.innerHTML = `
         <h2>🎉 The Score Is...</h2>
         <div class="score-reveal ${scoreClass}" id="scoreReveal">
@@ -540,23 +735,18 @@ async function showResultsReveal() {
         <p class="score-reveal-album">${partyData.albumTitle}</p>
     `;
     
-    // Trigger confetti
     setTimeout(() => {
         createConfetti(scoreClass);
-        
-        // Play score reveal animation
         const scoreReveal = document.getElementById('scoreReveal');
         scoreReveal.style.animation = 'scoreRevealAnimation 1s ease-out';
     }, 100);
     
-    // Mark as completed and save
     partyData.isCompleted = true;
     await db.collection('albums').doc(partyData.albumId).update({
         isCompleted: true,
         averageScore: parseFloat(albumAverage)
     });
     
-    // Wait for celebration, then show results
     setTimeout(() => {
         overlay.style.animation = 'fadeOut 0.5s ease-out';
         setTimeout(() => {
@@ -567,7 +757,6 @@ async function showResultsReveal() {
     }, 4000);
 }
 
-// Create confetti effect
 function createConfetti(scoreClass) {
     const colors = {
         'trash': ['#6b7280', '#9ca3af'],
@@ -579,7 +768,6 @@ function createConfetti(scoreClass) {
     
     const confettiColors = colors[scoreClass] || ['#6366f1', '#8b5cf6', '#ec4899'];
     
-    // Create multiple confetti pieces
     for (let i = 0; i < 100; i++) {
         setTimeout(() => {
             const confetti = document.createElement('div');
@@ -590,7 +778,6 @@ function createConfetti(scoreClass) {
             confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
             document.getElementById('countdownOverlay').appendChild(confetti);
             
-            // Remove after animation
             setTimeout(() => confetti.remove(), 4000);
         }, i * 10);
     }
@@ -598,3 +785,5 @@ function createConfetti(scoreClass) {
 
 // Make functions available globally
 window.goToStep = goToStep;
+window.clearSpotifySelection = clearSpotifySelection;
+window.continueWithSpotify = continueWithSpotify;
