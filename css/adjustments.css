@@ -160,3 +160,306 @@ ease-in-out;
 .track-ratings-list {
   display: none;
 }
+
+/* Additional Party Mode Styles */
+
+/* Dream album list styling for stats page */
+.dream-album-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dream-track-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--surface-light);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dream-track-item:hover {
+    transform: translateX(5px);
+    border-color: var(--primary-color);
+}
+
+.dream-track-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    min-width: 40px;
+    text-align: center;
+}
+
+.dream-track-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.dream-track-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dream-track-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 1.5rem;
+}
+
+.dream-track-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.dream-track-info strong {
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.dream-track-album {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.dream-track-score {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 5px 15px;
+    border-radius: 8px;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* Social stats grid */
+.social-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.social-stat-card {
+    background: var(--surface-light);
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    text-align: center;
+}
+
+.social-stat-card h4 {
+    margin: 0 0 15px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.social-stat-album {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.social-stat-album:hover {
+    transform: translateX(5px);
+    background: var(--surface-light);
+}
+
+.social-stat-cover {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.social-stat-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.social-stat-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 1.5rem;
+}
+
+.social-stat-info {
+    flex: 1;
+    text-align: left;
+}
+
+.social-stat-info strong {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.social-stat-info span {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.social-stat-value {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 5px;
+}
+
+/* Leaderboard grid */
+.leaderboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.leaderboard-card {
+    background: var(--surface-light);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.leaderboard-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.leaderboard-card h4 {
+    margin: 0 0 5px 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.leaderboard-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.leaderboard-result {
+    margin-top: 10px;
+    padding: 15px;
+    background: var(--surface);
+    border-radius: 8px;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.leaderboard-result strong {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+/* Party mode specific animations */
+@keyframes partyPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+}
+
+.party-active-indicator {
+    animation: partyPulse 2s infinite;
+}
+
+/* Mobile responsiveness for party mode */
+@media (max-width: 768px) {
+    .room-code {
+        font-size: 3rem;
+        letter-spacing: 8px;
+    }
+
+    .join-instructions {
+        font-size: 1rem;
+    }
+
+    .lobby-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .track-number-big {
+        font-size: 2rem;
+    }
+
+    .track-title-big {
+        font-size: 1.5rem;
+    }
+
+    .live-ratings {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .rating-card-score {
+        font-size: 2rem;
+    }
+
+    .big-start-button {
+        padding: 20px 40px;
+        font-size: 1.5rem;
+    }
+
+    /* Guest mobile optimizations */
+    .code-input {
+        font-size: 2rem;
+        letter-spacing: 5px;
+    }
+
+    .rating-buttons {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .rating-btn {
+        padding: 15px;
+        font-size: 1.2rem;
+    }
+
+    .track-display {
+        padding: 20px;
+    }
+
+    .track-number {
+        font-size: 1.2rem;
+    }
+
+    .track-title {
+        font-size: 1.5rem;
+    }
+}

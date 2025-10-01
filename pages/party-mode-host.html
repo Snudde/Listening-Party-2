@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Party Mode - Host - Music Party App</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/adjustments.css">
+    <style>
+        .party-mode-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .room-code-display {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .room-code {
+            font-size: 5rem;
+            font-weight: bold;
+            letter-spacing: 15px;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin: 10px 0;
+        }
+
+        .join-instructions {
+            font-size: 1.3rem;
+            color: white;
+            opacity: 0.95;
+        }
+
+        .participant-lobby {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .lobby-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .lobby-participant {
+            background: var(--surface-light);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--primary-color);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .lobby-participant-avatar {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .current-track-display {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .track-number-big {
+            font-size: 3rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .track-title-big {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .live-ratings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .rating-card {
+            background: var(--surface-light);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .rating-card.has-rating {
+            border-color: var(--success-color);
+            animation: ratingReceived 0.5s ease-out;
+        }
+
+        @keyframes ratingReceived {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .rating-card-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .rating-card-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .rating-card-waiting {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .host-controls {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .progress-indicator {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 30px;
+            background: var(--surface-light);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .setup-phase {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .big-start-button {
+            padding: 30px 60px;
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .big-start-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+        }
+
+        .waiting-message {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            font-size: 1.3rem;
+        }
+
+        @keyframes dotPulse {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .waiting-message::after {
+            content: '...';
+            animation: dotPulse 1.5s infinite;
+        }
+
+        /* Spotify Search Styles */
+        .spotify-search-section {
+            background: var(--surface);
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .spotify-results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .spotify-result-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            background: var(--surface-light);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .spotify-result-item:hover {
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .spotify-album-cover {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .spotify-album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .spotify-album-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .spotify-album-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .spotify-album-artist {
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+
+        .spotify-album-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .spotify-loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+     <div class="floating-bg" id="floatingBg">
+    <!-- Album covers will be dynamically added here -->
+</div>
+    <div class="container party-mode-container">
+        <header>
+            <h1>🎉 Party Mode - Host</h1>
+            <p>Live listening party experience</p>
+        </header>
+
+        <nav class="main-nav">
+            <a href="../index.html" class="nav-link">Home</a>
+            <a href="participants.html" class="nav-link">Participants</a>
+            <a href="create-party.html" class="nav-link">New Party</a>
+            <a href="party-mode-host.html" class="nav-link active">Party Mode</a>
+            <a href="albums.html" class="nav-link">Albums</a>
+            <a href="top-list.html" class="nav-link">Top List</a>
+            <a href="stats.html" class="nav-link">Stats</a>
+        </nav>
+
+        <main>
+            <!-- Setup Phase -->
+            <div id="setupPhase" class="setup-phase">
+                <section class="party-step active">
+                    <h2>Create Party Session</h2>
+                    
+                    <!-- Spotify Search -->
+                    <div class="spotify-search-section">
+                        <h3>🎵 Search Spotify (Optional)</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px;">
+                            Find an album on Spotify to auto-fill details
+                        </p>
+                        <div class="form-group">
+                            <input 
+                                type="text" 
+                                id="spotifySearch" 
+                                placeholder="Search for album or artist..."
+                                style="width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--border); background: var(--surface-light); color: var(--text-primary);"
+                            >
+                        </div>
+                        <button type="button" class="btn btn-secondary" id="searchSpotifyBtn" style="width: 100%; margin-bottom: 20px;">
+                            Search Spotify
+                        </button>
+                        
+                        <!-- Spotify Results -->
+                        <div id="spotifyResults" style="display: none; margin-bottom: 30px;">
+                            <h4>Search Results:</h4>
+                            <div id="spotifyResultsList" class="spotify-results-list">
+                                <!-- Results will appear here -->
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 20px 0; color: var(--text-secondary);">
+                            <strong>OR</strong>
+                        </div>
+                    </div>
+                    
+                    <h3>Enter Manually</h3>
+                    <form id="partySetupForm" class="party-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="partyAlbumTitle">Album Title *</label>
+                                <input type="text" id="partyAlbumTitle" required placeholder="e.g., Dark Side of the Moon">
+                            </div>
+                            <div class="form-group">
+                                <label for="partyArtistName">Artist/Band Name *</label>
+                                <input type="text" id="partyArtistName" required placeholder="e.g., Pink Floyd">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="partyTrackCount">Number of Tracks *</label>
+                                <input type="number" id="partyTrackCount" required min="1" max="50" placeholder="e.g., 10">
+                            </div>
+                            <div class="form-group">
+                                <label for="partyAlbumCover">Album Cover (optional if using Spotify)</label>
+                                <input type="file" id="partyAlbumCover" accept="image/*">
+                            </div>
+                        </div>
+
+                        <div id="partyCoverPreview" class="image-preview-large" style="display: none;">
+                            <img id="partyCoverPreviewImg" src="" alt="Album Cover">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 20px; font-size: 1.3rem;">
+                            Create Party Room 🎉
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- Lobby Phase -->
+            <div id="lobbyPhase" style="display: none;">
+                <div class="room-code-display">
+                    <p class="join-instructions">Join at: <strong>listening-party-2-bf563.web.app/pages/party-mode-guest.html</strong></p>
+                    <div class="room-code" id="roomCodeDisplay">------</div>
+                    <p class="join-instructions">Enter this code on your phone!</p>
+                </div>
+
+                <div class="participant-lobby">
+                    <h2>Waiting for participants... <span id="participantCount">0</span></h2>
+                    <div id="lobbyGrid" class="lobby-grid">
+                        <!-- Participants will appear here -->
+                    </div>
+                </div>
+
+                <div class="host-controls">
+                    <button class="big-start-button" id="startPartyBtn">
+                        Start Listening Party! 🎵
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Party Phase -->
+            <div id="activePhase" style="display: none;">
+                <div class="progress-indicator">
+                    <h3>Track <span id="currentTrackNum">1</span> of <span id="totalTracks">0</span></h3>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="trackProgress" style="width: 0%;">
+                            0%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="current-track-display">
+                    <div class="track-number-big">Track <span id="activeTrackNum">1</span></div>
+                    <div class="track-title-big" id="activeTrackTitle">Loading...</div>
+                    
+                    <div class="live-ratings" id="liveRatings">
+                        <!-- Rating cards will appear here -->
+                    </div>
+                </div>
+
+                <div class="host-controls">
+                    <button class="btn btn-primary" id="nextTrackBtn" style="padding: 20px 40px; font-size: 1.3rem;">
+                        Next Track ➡️
+                    </button>
+                    <button class="btn btn-success" id="finishPartyBtn" style="padding: 20px 40px; font-size: 1.3rem; display: none;">
+                        Finish & View Results 🎉
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Phase -->
+            <div id="resultsPhase" style="display: none;">
+                <div class="results-header">
+                    <div class="album-info-display">
+                        <div id="finalAlbumCover" class="album-cover-medium"></div>
+                        <div>
+                            <h2 id="finalAlbumTitle"></h2>
+                            <p id="finalArtistName"></p>
+                            <div class="album-score">
+                                <span class="score-label">Album Score:</span>
+                                <span class="score-value" id="finalAlbumScore">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results-container">
+                    <h3>Track Ratings</h3>
+                    <div id="finalTrackRatings" class="track-ratings-list">
+                        <!-- Final track ratings -->
+                    </div>
+
+                    <div class="results-actions">
+                        <a href="albums.html" class="btn btn-primary">View in Albums</a>
+                        <button class="btn btn-secondary" id="newPartyBtn">Start New Party</button>
+                        <a href="../index.html" class="btn btn-secondary">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/party-mode-host.js"></script>
+</body>
+</html>
