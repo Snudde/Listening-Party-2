@@ -340,7 +340,7 @@ function displayStats(stats, albums) {
     }
     
     document.getElementById('mostCommon').textContent = stats.mostCommon;
-    document.getElementById('ratingStyle').textContent = stats.style;
+    document.getElementById('ratingStyle').textContent = stats.style; }
 
     function displayNerdyPersonalStats(allRatings, albums, participantId) {
     const ratings = allRatings.map(r => r.rating);
@@ -462,7 +462,7 @@ function displayStats(stats, albums) {
         ` : ''}
     `;
 }
-}
+
 
 // Display rating distribution chart
 function displayRatingDistribution(distribution, total) {
@@ -709,68 +709,59 @@ if (tasteTwinData) {
         document.getElementById('disagreementDiff').textContent = '';
     }
     
-    // Find contrarian pick (album where user differs most from group)
-    let contrarianPick = null;
-    let maxAlbumDiff = 0;
+    // Find taste enemy (most disagreement)
+let tasteEnemy = null;
+let tasteEnemyData = null;
+let highestDiff = 0;
+
+for (const otherId of allParticipants) {
+    let totalDiff = 0;
+    let comparisons = 0;
     
     albums.forEach(album => {
-        let userTotal = 0;
-        let userCount = 0;
-        let groupTotal = 0;
-        let groupCount = 0;
-        
-        album.tracks.forEach(track => {
-            const userRating = album.ratings?.[track.number]?.[participantId];
-            if (userRating !== null && userRating !== undefined) {
-                userTotal += userRating;
-                userCount++;
-            }
-            
-            Object.entries(album.ratings?.[track.number] || {}).forEach(([pId, rating]) => {
-                if (pId !== participantId && rating !== null && rating !== undefined) {
-                    groupTotal += rating;
-                    groupCount++;
+        if (album.participants.includes(participantId) && album.participants.includes(otherId)) {
+            album.tracks.forEach(track => {
+                const userRating = album.ratings?.[track.number]?.[participantId];
+                const otherRating = album.ratings?.[track.number]?.[otherId];
+                if (userRating !== null && userRating !== undefined && otherRating !== null && otherRating !== undefined) {
+                    totalDiff += Math.abs(userRating - otherRating);
+                    comparisons++;
                 }
             });
-        });
-        
-        if (userCount > 0 && groupCount > 0) {
-            const userAvg = userTotal / userCount;
-            const groupAvg = groupTotal / groupCount;
-            const diff = Math.abs(userAvg - groupAvg);
-            
-            if (diff > maxAlbumDiff) {
-                maxAlbumDiff = diff;
-                contrarianPick = {
-                    album: album.title,
-                    albumId: album.id,
-                    albumCover: album.coverImage || '',
-                    userAvg,
-                    groupAvg
-                };
-            }
         }
     });
     
-    if (contrarianPick) {
-        document.getElementById('contrarianPick').innerHTML = `
-            <div class="social-stat-album" onclick="window.location.href='albums.html?id=${contrarianPick.albumId}'">
-                <div class="social-stat-cover">
-                    ${contrarianPick.albumCover 
-                        ? `<img src="${contrarianPick.albumCover}" alt="${contrarianPick.album}">` 
-                        : `<div class="social-stat-placeholder">🎵</div>`
-                    }
-                </div>
-                <div class="social-stat-info">
-                    <strong>${contrarianPick.album}</strong>
-                </div>
-            </div>
-        `;
-        document.getElementById('contrarianDiff').textContent = `You: ${contrarianPick.userAvg.toFixed(1)} / Group: ${contrarianPick.groupAvg.toFixed(1)}`;
-    } else {
-        document.getElementById('contrarianPick').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">N/A</p>';
-        document.getElementById('contrarianDiff').textContent = '';
+    if (comparisons > 0) {
+        const avgDiff = totalDiff / comparisons;
+        if (avgDiff > highestDiff) {
+            highestDiff = avgDiff;
+            const doc = await db.collection('participants').doc(otherId).get();
+            const data = doc.data();
+            tasteEnemyData = {
+                username: data.username,
+                profilePicture: data.profilePicture || ''
+            };
+        }
     }
+}
+
+if (tasteEnemyData) {
+    document.getElementById('tasteEnemy').innerHTML = `
+        <div class="taste-twin-display">
+            <div class="taste-twin-avatar">
+                ${tasteEnemyData.profilePicture 
+                    ? `<img src="${tasteEnemyData.profilePicture}" alt="${tasteEnemyData.username}">` 
+                    : `<div class="avatar-placeholder">${tasteEnemyData.username.charAt(0).toUpperCase()}</div>`
+                }
+            </div>
+            <strong>${tasteEnemyData.username}</strong>
+        </div>
+    `;
+    document.getElementById('tasteEnemyScore').textContent = highestDiff !== 0 ? `Avg diff: ${highestDiff.toFixed(2)}` : '';
+} else {
+    document.getElementById('tasteEnemy').innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No other participants</p>';
+    document.getElementById('tasteEnemyScore').textContent = '';
+}
 }
 
 // Load global stats
@@ -1026,11 +1017,12 @@ document.getElementById('perfectScoreGiver').innerHTML = `
         `;
         
         console.log('✅ Global stats calculated');
+         displayGlobalNerdyStats(albums, participants);
+console.log('✅ Global nerdy stats displayed');
     } catch (error) {
         console.error('❌ Error loading global stats:', error);
     }
-    displayGlobalNerdyStats(albums, participants);
-console.log('✅ Global nerdy stats displayed');
+   
 }
 
 // Calculate variance
