@@ -319,3 +319,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Export for backward compatibility with index.html
 window.initFloatingBackground = initFloatingBackgroundUniversal;
+
