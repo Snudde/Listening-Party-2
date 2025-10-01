@@ -11,7 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('personalTab').addEventListener('click', () => switchTab('personal'));
     document.getElementById('globalTab').addEventListener('click', () => switchTab('global'));
     
-    // Load global stats on page load
+    // Load global stats on page load and set as default tab
+    switchTab('global');
     loadGlobalStats();
 });
 
@@ -130,10 +131,14 @@ displayDreamAndNightmareAlbums(allRatings);
 console.log('🔍 CALLED displayDreamAndNightmareAlbums');
 displaySocialStats(participantId, albumsData, allRatings);
 console.log('🔍 CALLED displaySocialStats');
+displayNerdyPersonalStats(allRatings, albumsData, participantId);
+console.log('🔍 CALLED displayNerdyPersonalStats');
     } catch (error) {
         console.error('❌ Error loading stats:', error);
         showNotification('Error loading statistics', 'error');
     }
+    
+    
 }
 
 // Calculate statistics
@@ -336,6 +341,127 @@ function displayStats(stats, albums) {
     
     document.getElementById('mostCommon').textContent = stats.mostCommon;
     document.getElementById('ratingStyle').textContent = stats.style;
+
+    function displayNerdyPersonalStats(allRatings, albums, participantId) {
+    const ratings = allRatings.map(r => r.rating);
+    
+    // Calculate nerdy stats
+    const entropy = calculateEntropy(ratings);
+    const precision = calculatePrecisionScore(ratings);
+    const perfectScores = ratings.filter(r => r === 10).length;
+    const zeroTolerance = ratings.filter(r => r <= 2).length;
+    const median = calculateMedian(ratings);
+    const mean = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(2);
+    const outlierPct = calculateOutlierPercentage(ratings);
+    const hotTakes = findHotTakes(allRatings, albums, participantId);
+    const moodSwing = findBiggestMoodSwing(albums, participantId);
+    
+    // Display in a new section
+    const container = document.getElementById('nerdyStatsContainer');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <h3>🤓 Nerdy Stats</h3>
+        <div class="nerdy-stats-grid">
+            <div class="nerdy-stat-card">
+                <div class="nerdy-stat-icon">🎲</div>
+                <h4>Rating Entropy</h4>
+                <p class="nerdy-stat-value">${entropy}</p>
+                <span class="nerdy-stat-label">Unpredictability score</span>
+            </div>
+            
+            <div class="nerdy-stat-card">
+                <div class="nerdy-stat-icon">🎯</div>
+                <h4>Precision Score</h4>
+                <p class="nerdy-stat-value">${precision}%</p>
+                <span class="nerdy-stat-label">Half-point usage</span>
+            </div>
+            
+            <div class="nerdy-stat-card">
+                <div class="nerdy-stat-icon">💯</div>
+                <h4>Perfect Scores</h4>
+                <p class="nerdy-stat-value">${perfectScores}</p>
+                <span class="nerdy-stat-label">10/10 ratings given</span>
+            </div>
+            
+            <div class="nerdy-stat-card">
+                <div class="nerdy-stat-icon">🗑️</div>
+                <h4>Zero Tolerance</h4>
+                <p class="nerdy-stat-value">${zeroTolerance}</p>
+                <span class="nerdy-stat-label">0-2 ratings given</span>
+            </div>
+            
+            <div class="nerdy-stat-card">
+                <div class="nerdy-stat-icon">📊</div>
+                <h4>Median vs Mean</h4>
+                <p class="nerdy-stat-value">${median} / ${mean}</p>
+                <span class="nerdy-stat-label">Central tendency</span>
+            </div>
+            
+            <div class="nerdy-stat-card">
+                <div class="nerdy-stat-icon">🎪</div>
+                <h4>Outlier King/Queen</h4>
+                <p class="nerdy-stat-value">${outlierPct}%</p>
+                <span class="nerdy-stat-label">Extreme ratings</span>
+            </div>
+        </div>
+        
+        ${hotTakes.length > 0 ? `
+            <div class="hot-takes-section">
+                <h4>🔥 Hot Takes</h4>
+                <p class="section-subtitle">Your ratings 3+ points away from group average</p>
+                <div class="hot-takes-list">
+                    ${hotTakes.map(ht => `
+                        <div class="hot-take-item" onclick="window.location.href='albums.html?id=${ht.albumId}'">
+                            <div class="hot-take-cover">
+                                ${ht.albumCover 
+                                    ? `<img src="${ht.albumCover}" alt="${ht.album}">` 
+                                    : `<div class="hot-take-placeholder">🎵</div>`
+                                }
+                            </div>
+                            <div class="hot-take-info">
+                                <strong>${ht.track}</strong>
+                                <span>${ht.album}</span>
+                            </div>
+                            <div class="hot-take-scores">
+                                <span class="hot-take-you">You: ${formatScore(ht.userRating)}</span>
+                                <span class="hot-take-group">Group: ${ht.groupAvg}</span>
+                                <span class="hot-take-diff">Δ ${ht.difference}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
+        
+        ${moodSwing ? `
+            <div class="mood-swing-section">
+                <h4>🎭 Biggest Mood Swing</h4>
+                <p class="section-subtitle">Largest rating jump between consecutive tracks</p>
+                <div class="mood-swing-card" onclick="window.location.href='albums.html?id=${moodSwing.albumId}'">
+                    <div class="mood-swing-cover">
+                        ${moodSwing.albumCover 
+                            ? `<img src="${moodSwing.albumCover}" alt="${moodSwing.album}">` 
+                            : `<div class="mood-swing-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="mood-swing-info">
+                        <div class="mood-swing-track">
+                            <strong>${moodSwing.track1}</strong>
+                            <span class="mood-swing-rating ${getScoreClass(moodSwing.rating1)}">${formatScore(moodSwing.rating1)}</span>
+                        </div>
+                        <div class="mood-swing-arrow">↓</div>
+                        <div class="mood-swing-track">
+                            <strong>${moodSwing.track2}</strong>
+                            <span class="mood-swing-rating ${getScoreClass(moodSwing.rating2)}">${formatScore(moodSwing.rating2)}</span>
+                        </div>
+                        <div class="mood-swing-diff">Swing: ${moodSwing.swing.toFixed(1)} points</div>
+                    </div>
+                </div>
+            </div>
+        ` : ''}
+    `;
+}
 }
 
 // Display rating distribution chart
@@ -413,52 +539,51 @@ function displayDreamAndNightmareAlbums(allRatings) {
     const topTracks = sortedRatings.slice(0, 10);
     dreamContainer.innerHTML = '';
     console.log('✨ Dream album top tracks:', topTracks.length);
-    console.log('First track data:', topTracks[0]);
     
     topTracks.forEach((track, index) => {
         const trackEl = document.createElement('div');
-        trackEl.className = 'dream-track-item';
+        trackEl.className = 'dream-track-item-compact';
         trackEl.onclick = () => window.location.href = `albums.html?id=${track.albumId}`;
         trackEl.innerHTML = `
-            <div class="dream-track-rank">${index + 1}</div>
-            <div class="dream-track-cover">
+            <div class="dream-track-rank-compact">${index + 1}</div>
+            <div class="dream-track-cover-compact">
                 ${track.albumCover 
                     ? `<img src="${track.albumCover}" alt="${track.album}">` 
-                    : `<div class="dream-track-placeholder">🎵</div>`
+                    : `<div class="dream-track-placeholder-compact">🎵</div>`
                 }
             </div>
-            <div class="dream-track-info">
+            <div class="dream-track-info-compact">
                 <strong>${track.track}</strong>
-                <span class="dream-track-album">${track.album} - ${track.artist}</span>
+                <span class="dream-track-album-compact">${track.album}</span>
             </div>
-            <div class="dream-track-score ${getScoreClass(track.rating)}">${formatScore(track.rating)}</div>
+            <div class="dream-track-score-compact ${getScoreClass(track.rating)}">${formatScore(track.rating)}</div>
         `;
         dreamContainer.appendChild(trackEl);
     });
     
     console.log('✨ Dream album rendered, container children:', dreamContainer.children.length);
     
-    // Bottom 10 tracks
+    // Bottom 5 tracks
     const bottomTracks = sortedRatings.slice(-10).reverse();
     nightmareContainer.innerHTML = '';
     console.log('💀 Nightmare album bottom tracks:', bottomTracks.length);
     bottomTracks.forEach((track, index) => {
         const trackEl = document.createElement('div');
-        trackEl.className = 'dream-track-item';
+        trackEl.className = 'dream-track-item-compact';
         trackEl.onclick = () => window.location.href = `albums.html?id=${track.albumId}`;
         trackEl.innerHTML = `
-            <div class="dream-track-rank">${index + 1}</div>
-            <div class="dream-track-cover">
+            <div class="dream-track-rank-compact">${index + 1}</div>
+            <div class="dream-track-cover-compact">
                 ${track.albumCover 
                     ? `<img src="${track.albumCover}" alt="${track.album}">` 
-                    : `<div class="dream-track-placeholder">🎵</div>`
+                    : `<div class="dream-track-placeholder-compact">🎵</div>`
                 }
             </div>
-            <div class="dream-track-info">
+            <div class="dream-track-info-compact">
                 <strong>${track.track}</strong>
-                <span class="dream-track-album">${track.album} - ${track.artist}</span>
+                <span class="dream-track-album-compact">${track.album}</span>
             </div>
-            <div class="dream-track-score ${getScoreClass(track.rating)}">${formatScore(track.rating)}</div>
+            <div class="dream-track-score-compact ${getScoreClass(track.rating)}">${formatScore(track.rating)}</div>
         `;
         nightmareContainer.appendChild(trackEl);
     });
@@ -904,6 +1029,8 @@ document.getElementById('perfectScoreGiver').innerHTML = `
     } catch (error) {
         console.error('❌ Error loading global stats:', error);
     }
+    displayGlobalNerdyStats(albums, participants);
+console.log('✅ Global nerdy stats displayed');
 }
 
 // Calculate variance
@@ -914,3 +1041,544 @@ function calculateVariance(values) {
     return squareDiffs.reduce((a, b) => a + b, 0) / values.length;
 }
 
+function displayGlobalNerdyStats(albums, participants) {
+    const container = document.getElementById('globalNerdyStats');
+    if (!container) return;
+    
+    const polarizing = findMostPolarizingTrack(albums);
+    const consensus = findConsensusTrack(albums);
+    const rollerCoaster = findRollerCoasterAlbum(albums);
+    const { opener, closer } = findBestOpenerAndCloser(albums);
+    const sweetSpot = calculateSweetSpot(albums);
+    const { powerDuo, rivals } = findPowerDuoAndRivals(participants, albums);
+    
+    let html = '';
+    
+    // Most Polarizing Track
+    if (polarizing) {
+        html += `
+            <div class="global-nerdy-card" onclick="window.location.href='albums.html?id=${polarizing.albumId}'">
+                <h4><span>🤝</span> Most Polarizing Track</h4>
+                <div class="global-track-display">
+                    <div class="global-track-cover">
+                        ${polarizing.albumCover 
+                            ? `<img src="${polarizing.albumCover}" alt="${polarizing.album}">` 
+                            : `<div class="global-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="global-track-info">
+                        <strong>${polarizing.track}</strong>
+                        <span>${polarizing.album}</span>
+                        <span class="global-track-stat">σ² = ${polarizing.variance.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Consensus Track
+    if (consensus) {
+        html += `
+            <div class="global-nerdy-card" onclick="window.location.href='albums.html?id=${consensus.albumId}'">
+                <h4><span>🏆</span> Consensus Champion</h4>
+                <div class="global-track-display">
+                    <div class="global-track-cover">
+                        ${consensus.albumCover 
+                            ? `<img src="${consensus.albumCover}" alt="${consensus.album}">` 
+                            : `<div class="global-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="global-track-info">
+                        <strong>${consensus.track}</strong>
+                        <span>${consensus.album}</span>
+                        <span class="global-track-stat">Everyone agreed: ${consensus.avgScore.toFixed(1)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Roller Coaster Album
+    if (rollerCoaster) {
+        html += `
+            <div class="global-nerdy-card" onclick="window.location.href='albums.html?id=${rollerCoaster.albumId}'">
+                <h4><span>🎢</span> Roller Coaster Album</h4>
+                <div class="global-track-display">
+                    <div class="global-track-cover">
+                        ${rollerCoaster.albumCover 
+                            ? `<img src="${rollerCoaster.albumCover}" alt="${rollerCoaster.album}">` 
+                            : `<div class="global-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="global-track-info">
+                        <strong>${rollerCoaster.album}</strong>
+                        <span>${rollerCoaster.artist}</span>
+                        <span class="global-track-stat">Track variance: ${rollerCoaster.variance.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Best Opener
+    if (opener) {
+        html += `
+            <div class="global-nerdy-card" onclick="window.location.href='albums.html?id=${opener.albumId}'">
+                <h4><span>🎬</span> Best Album Opener</h4>
+                <div class="global-track-display">
+                    <div class="global-track-cover">
+                        ${opener.albumCover 
+                            ? `<img src="${opener.albumCover}" alt="${opener.album}">` 
+                            : `<div class="global-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="global-track-info">
+                        <strong>${opener.track}</strong>
+                        <span>${opener.album}</span>
+                        <span class="global-track-stat">${opener.score.toFixed(2)} avg</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Best Closer
+    if (closer) {
+        html += `
+            <div class="global-nerdy-card" onclick="window.location.href='albums.html?id=${closer.albumId}'">
+                <h4><span>🚀</span> Best Album Closer</h4>
+                <div class="global-track-display">
+                    <div class="global-track-cover">
+                        ${closer.albumCover 
+                            ? `<img src="${closer.albumCover}" alt="${closer.album}">` 
+                            : `<div class="global-track-placeholder">🎵</div>`
+                        }
+                    </div>
+                    <div class="global-track-info">
+                        <strong>${closer.track}</strong>
+                        <span>${closer.album}</span>
+                        <span class="global-track-stat">${closer.score.toFixed(2)} avg</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Sweet Spot Duration
+    if (sweetSpot) {
+        html += `
+            <div class="global-nerdy-card">
+                <h4><span>🎵</span> Sweet Spot Duration</h4>
+                <div class="global-track-info">
+                    <strong>${sweetSpot.trackCount} Tracks</strong>
+                    <span>Optimal length for high scores</span>
+                    <span class="global-track-stat">${sweetSpot.avgScore.toFixed(2)} avg (${sweetSpot.albumCount} albums)</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Power Duo
+    if (powerDuo) {
+        html += `
+            <div class="global-nerdy-card">
+                <h4><span>👥</span> Power Duo</h4>
+                <div class="duo-display">
+                    <div class="duo-participant">
+                        <div class="duo-avatar">
+                            ${powerDuo.p1.profilePicture 
+                                ? `<img src="${powerDuo.p1.profilePicture}" alt="${powerDuo.p1.username}">` 
+                                : `<div class="avatar-placeholder-mini">${powerDuo.p1.username.charAt(0)}</div>`
+                            }
+                        </div>
+                        <span>${powerDuo.p1.username}</span>
+                    </div>
+                    <div class="duo-separator">🤝</div>
+                    <div class="duo-participant">
+                        <div class="duo-avatar">
+                            ${powerDuo.p2.profilePicture 
+                                ? `<img src="${powerDuo.p2.profilePicture}" alt="${powerDuo.p2.username}">` 
+                                : `<div class="avatar-placeholder-mini">${powerDuo.p2.username.charAt(0)}</div>`
+                            }
+                        </div>
+                        <span>${powerDuo.p2.username}</span>
+                    </div>
+                </div>
+                <div class="duo-stat">Avg difference: ${powerDuo.avgDiff.toFixed(2)} points</div>
+            </div>
+        `;
+    }
+    
+    // Rivals
+    if (rivals && rivals !== powerDuo) {
+        html += `
+            <div class="global-nerdy-card">
+                <h4><span>⚔️</span> Rivals</h4>
+                <div class="duo-display">
+                    <div class="duo-participant">
+                        <div class="duo-avatar">
+                            ${rivals.p1.profilePicture 
+                                ? `<img src="${rivals.p1.profilePicture}" alt="${rivals.p1.username}">` 
+                                : `<div class="avatar-placeholder-mini">${rivals.p1.username.charAt(0)}</div>`
+                            }
+                        </div>
+                        <span>${rivals.p1.username}</span>
+                    </div>
+                    <div class="duo-separator">⚔️</div>
+                    <div class="duo-participant">
+                        <div class="duo-avatar">
+                            ${rivals.p2.profilePicture 
+                                ? `<img src="${rivals.p2.profilePicture}" alt="${rivals.p2.username}">` 
+                                : `<div class="avatar-placeholder-mini">${rivals.p2.username.charAt(0)}</div>`
+                            }
+                        </div>
+                        <span>${rivals.p2.username}</span>
+                    </div>
+                </div>
+                <div class="duo-stat">Avg difference: ${rivals.avgDiff.toFixed(2)} points</div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Calculate rating entropy (unpredictability)
+function calculateEntropy(ratings) {
+    const distribution = {};
+    ratings.forEach(r => {
+        distribution[r] = (distribution[r] || 0) + 1;
+    });
+    
+    let entropy = 0;
+    const total = ratings.length;
+    Object.values(distribution).forEach(count => {
+        const p = count / total;
+        entropy -= p * Math.log2(p);
+    });
+    
+    return entropy.toFixed(2);
+}
+
+// Calculate precision score (half-point usage)
+function calculatePrecisionScore(ratings) {
+    const halfPoints = ratings.filter(r => r % 1 !== 0).length;
+    return ((halfPoints / ratings.length) * 100).toFixed(1);
+}
+
+// Find hot takes (ratings far from group average)
+function findHotTakes(allRatings, albums, participantId) {
+    const hotTakes = [];
+    
+    albums.forEach(album => {
+        if (album.tracks && album.ratings) {
+            album.tracks.forEach(track => {
+                const userRating = album.ratings[track.number]?.[participantId];
+                if (userRating !== null && userRating !== undefined) {
+                    const allTrackRatings = Object.values(album.ratings[track.number] || {})
+                        .filter(r => r !== null && r !== undefined);
+                    
+                    if (allTrackRatings.length > 1) {
+                        const avg = allTrackRatings.reduce((a, b) => a + b, 0) / allTrackRatings.length;
+                        const diff = Math.abs(userRating - avg);
+                        
+                        if (diff >= 3) {
+                            hotTakes.push({
+                                track: track.title,
+                                album: album.title,
+                                albumId: album.id,
+                                albumCover: album.coverImage || '',
+                                userRating,
+                                groupAvg: avg.toFixed(1),
+                                difference: diff.toFixed(1)
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    return hotTakes.sort((a, b) => parseFloat(b.difference) - parseFloat(a.difference)).slice(0, 5);
+}
+
+// Find biggest mood swing (rating jump between consecutive tracks)
+function findBiggestMoodSwing(albums, participantId) {
+    let biggestSwing = null;
+    let maxDiff = 0;
+    
+    albums.forEach(album => {
+        if (album.tracks && album.ratings) {
+            for (let i = 0; i < album.tracks.length - 1; i++) {
+                const track1 = album.tracks[i];
+                const track2 = album.tracks[i + 1];
+                const rating1 = album.ratings[track1.number]?.[participantId];
+                const rating2 = album.ratings[track2.number]?.[participantId];
+                
+                if (rating1 !== null && rating1 !== undefined && rating2 !== null && rating2 !== undefined) {
+                    const diff = Math.abs(rating2 - rating1);
+                    if (diff > maxDiff) {
+                        maxDiff = diff;
+                        biggestSwing = {
+                            track1: track1.title,
+                            track2: track2.title,
+                            rating1,
+                            rating2,
+                            swing: diff,
+                            album: album.title,
+                            albumId: album.id,
+                            albumCover: album.coverImage || ''
+                        };
+                    }
+                }
+            }
+        }
+    });
+    
+    return biggestSwing;
+}
+
+// Calculate outlier percentage
+function calculateOutlierPercentage(ratings) {
+    if (ratings.length < 3) return 0;
+    
+    const mean = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+    const stdDev = calculateStandardDeviation(ratings);
+    
+    const outliers = ratings.filter(r => Math.abs(r - mean) > 2 * stdDev).length;
+    return ((outliers / ratings.length) * 100).toFixed(1);
+}
+
+// Calculate median
+function calculateMedian(ratings) {
+    const sorted = [...ratings].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    
+    if (sorted.length % 2 === 0) {
+        return ((sorted[mid - 1] + sorted[mid]) / 2).toFixed(2);
+    }
+    return sorted[mid].toFixed(2);
+}
+
+// Find most polarizing track
+function findMostPolarizingTrack(albums) {
+    let mostPolarizing = null;
+    let maxVariance = 0;
+    
+    albums.forEach(album => {
+        album.tracks.forEach(track => {
+            const ratings = Object.values(album.ratings?.[track.number] || {})
+                .filter(r => r !== null && r !== undefined);
+            
+            if (ratings.length > 1) {
+                const variance = calculateVariance(ratings);
+                if (variance > maxVariance) {
+                    maxVariance = variance;
+                    mostPolarizing = {
+                        track: track.title,
+                        album: album.title,
+                        albumId: album.id,
+                        albumCover: album.coverImage || '',
+                        variance: variance,
+                        ratings: ratings
+                    };
+                }
+            }
+        });
+    });
+    
+    return mostPolarizing;
+}
+
+// Find consensus track (lowest variance)
+function findConsensusTrack(albums) {
+    let consensus = null;
+    let minVariance = Infinity;
+    
+    albums.forEach(album => {
+        album.tracks.forEach(track => {
+            const ratings = Object.values(album.ratings?.[track.number] || {})
+                .filter(r => r !== null && r !== undefined);
+            
+            if (ratings.length > 1) {
+                const variance = calculateVariance(ratings);
+                if (variance < minVariance) {
+                    minVariance = variance;
+                    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+                    consensus = {
+                        track: track.title,
+                        album: album.title,
+                        albumId: album.id,
+                        albumCover: album.coverImage || '',
+                        variance: variance,
+                        avgScore: avg
+                    };
+                }
+            }
+        });
+    });
+    
+    return consensus;
+}
+
+// Find roller coaster album (most variance between tracks)
+function findRollerCoasterAlbum(albums) {
+    let rollerCoaster = null;
+    let maxTrackVariance = 0;
+    
+    albums.forEach(album => {
+        const trackAverages = [];
+        album.tracks.forEach(track => {
+            const ratings = Object.values(album.ratings?.[track.number] || {})
+                .filter(r => r !== null && r !== undefined);
+            if (ratings.length > 0) {
+                trackAverages.push(ratings.reduce((a, b) => a + b, 0) / ratings.length);
+            }
+        });
+        
+        if (trackAverages.length > 1) {
+            const variance = calculateVariance(trackAverages);
+            if (variance > maxTrackVariance) {
+                maxTrackVariance = variance;
+                rollerCoaster = {
+                    album: album.title,
+                    artist: album.artist,
+                    albumId: album.id,
+                    albumCover: album.coverImage || '',
+                    variance: variance
+                };
+            }
+        }
+    });
+    
+    return rollerCoaster;
+}
+
+// Find best opener and closer
+function findBestOpenerAndCloser(albums) {
+    let bestOpener = null;
+    let bestCloser = null;
+    let maxOpenerScore = 0;
+    let maxCloserScore = 0;
+    
+    albums.forEach(album => {
+        if (album.tracks && album.tracks.length > 0) {
+            // First track
+            const firstTrack = album.tracks[0];
+            const firstRatings = Object.values(album.ratings?.[firstTrack.number] || {})
+                .filter(r => r !== null && r !== undefined);
+            if (firstRatings.length > 0) {
+                const avg = firstRatings.reduce((a, b) => a + b, 0) / firstRatings.length;
+                if (avg > maxOpenerScore) {
+                    maxOpenerScore = avg;
+                    bestOpener = {
+                        track: firstTrack.title,
+                        album: album.title,
+                        albumId: album.id,
+                        albumCover: album.coverImage || '',
+                        score: avg
+                    };
+                }
+            }
+            
+            // Last track (excluding interludes)
+            const nonInterludes = album.tracks.filter(t => !t.isInterlude);
+            if (nonInterludes.length > 0) {
+                const lastTrack = nonInterludes[nonInterludes.length - 1];
+                const lastRatings = Object.values(album.ratings?.[lastTrack.number] || {})
+                    .filter(r => r !== null && r !== undefined);
+                if (lastRatings.length > 0) {
+                    const avg = lastRatings.reduce((a, b) => a + b, 0) / lastRatings.length;
+                    if (avg > maxCloserScore) {
+                        maxCloserScore = avg;
+                        bestCloser = {
+                            track: lastTrack.title,
+                            album: album.title,
+                            albumId: album.id,
+                            albumCover: album.coverImage || '',
+                            score: avg
+                        };
+                    }
+                }
+            }
+        }
+    });
+    
+    return { opener: bestOpener, closer: bestCloser };
+}
+
+// Find power duo and rivals
+function findPowerDuoAndRivals(participants, albums) {
+    const pairs = {};
+    
+    // Calculate average difference for each pair
+    for (let i = 0; i < participants.length; i++) {
+        for (let j = i + 1; j < participants.length; j++) {
+            const p1 = participants[i].id;
+            const p2 = participants[j].id;
+            const pairKey = `${p1}_${p2}`;
+            
+            let totalDiff = 0;
+            let comparisons = 0;
+            
+            albums.forEach(album => {
+                if (album.participants.includes(p1) && album.participants.includes(p2)) {
+                    album.tracks.forEach(track => {
+                        const r1 = album.ratings?.[track.number]?.[p1];
+                        const r2 = album.ratings?.[track.number]?.[p2];
+                        if (r1 !== null && r1 !== undefined && r2 !== null && r2 !== undefined) {
+                            totalDiff += Math.abs(r1 - r2);
+                            comparisons++;
+                        }
+                    });
+                }
+            });
+            
+            if (comparisons > 0) {
+                pairs[pairKey] = {
+                    p1: participants[i],
+                    p2: participants[j],
+                    avgDiff: totalDiff / comparisons,
+                    comparisons: comparisons
+                };
+            }
+        }
+    }
+    
+    const pairsList = Object.values(pairs).filter(p => p.comparisons >= 5);
+    if (pairsList.length === 0) return { powerDuo: null, rivals: null };
+    
+    pairsList.sort((a, b) => a.avgDiff - b.avgDiff);
+    const powerDuo = pairsList[0];
+    const rivals = pairsList[pairsList.length - 1];
+    
+    return { powerDuo, rivals };
+}
+
+// Calculate sweet spot duration
+function calculateSweetSpot(albums) {
+    const trackCountScores = {};
+    
+    albums.forEach(album => {
+        const trackCount = album.tracks.filter(t => !t.isInterlude).length;
+        if (!trackCountScores[trackCount]) {
+            trackCountScores[trackCount] = [];
+        }
+        trackCountScores[trackCount].push(album.averageScore);
+    });
+    
+    let sweetSpot = null;
+    let maxAvg = 0;
+    
+    Object.entries(trackCountScores).forEach(([count, scores]) => {
+        if (scores.length >= 2) {
+            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            if (avg > maxAvg) {
+                maxAvg = avg;
+                sweetSpot = { trackCount: parseInt(count), avgScore: avg, albumCount: scores.length };
+            }
+        }
+    });
+    
+    return sweetSpot;
+}

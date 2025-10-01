@@ -7,10 +7,6 @@
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-    <!-- Floating Album Covers Background -->
-<div class="floating-bg" id="floatingBg">
-    <!-- Album covers will be dynamically added here -->
-</div>
     <div class="container">
         <header>
             <h1>📊 Participant Statistics</h1>
@@ -29,12 +25,12 @@
         <main>
             <!-- Tab Navigation -->
             <section class="stats-tabs">
-                <button class="stats-tab active" data-tab="personal" id="personalTab">Personal Stats</button>
-                <button class="stats-tab" data-tab="global" id="globalTab">Global Stats</button>
+                <button class="stats-tab" data-tab="personal" id="personalTab">Personal Stats</button>
+                <button class="stats-tab active" data-tab="global" id="globalTab">Global Stats</button>
             </section>
 
             <!-- Personal Stats Tab -->
-            <div id="personalStatsTab" class="stats-tab-content active">
+            <div id="personalStatsTab" class="stats-tab-content">
                 <!-- Participant Selection -->
                 <section class="stats-selector">
                     <label for="participantSelect">Select Participant:</label>
@@ -82,23 +78,6 @@
                                     <!-- Favorite album card will be displayed here -->
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Dream & Nightmare Albums -->
-                    <div class="stats-section">
-                        <h3>🌟 Dream Album</h3>
-                        <p class="stats-section-subtitle">Your top 10 rated tracks across all albums</p>
-                        <div id="dreamAlbum" class="dream-album-list">
-                            <!-- Dream tracks will be generated here -->
-                        </div>
-                    </div>
-
-                    <div class="stats-section">
-                        <h3>💀 Nightmare Album</h3>
-                        <p class="stats-section-subtitle">Your bottom 10 rated tracks</p>
-                        <div id="nightmareAlbum" class="dream-album-list">
-                            <!-- Nightmare tracks will be generated here -->
                         </div>
                     </div>
 
@@ -166,6 +145,30 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Nerdy Stats Section -->
+                    <div class="stats-section" id="nerdyStatsContainer">
+                        <!-- Nerdy stats will be generated here -->
+                    </div>
+
+                    <!-- Dream & Nightmare Albums -->
+                    <div class="dream-nightmare-container">
+                        <div class="stats-section dream-section">
+                            <h3>🌟 Dream Album</h3>
+                            <p class="stats-section-subtitle">Your top 10 rated tracks</p>
+                            <div id="dreamAlbum" class="dream-album-list-compact">
+                                <!-- Dream tracks will be generated here -->
+                            </div>
+                        </div>
+
+                        <div class="stats-section nightmare-section">
+                            <h3>💀 Nightmare Album</h3>
+                            <p class="stats-section-subtitle">Your bottom 10 rated tracks</p>
+                            <div id="nightmareAlbum" class="dream-album-list-compact">
+                                <!-- Nightmare tracks will be generated here -->
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Empty State -->
@@ -181,7 +184,7 @@
             </div>
 
             <!-- Global Stats Tab -->
-            <div id="globalStatsTab" class="stats-tab-content">
+            <div id="globalStatsTab" class="stats-tab-content active">
                 <section class="global-stats-container">
                     <h2>🌍 Global Statistics</h2>
                     <p class="stats-section-subtitle">Comparing all participants across all albums</p>
