@@ -6,8 +6,6 @@
     <title>Party Mode - Host - Music Party App</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/adjustments.css">
-    <link rel="stylesheet" href="../css/awards.css">
-    <link rel="stylesheet" href="../css/spotify.css">
     <style>
         .party-mode-container {
             max-width: 1400px;
@@ -659,43 +657,34 @@
             </div>
 
             <!-- Results Phase -->
-           <!-- Step 5: Results -->
-            <section id="step5" class="party-step">
+            <div id="resultsPhase" style="display: none;">
                 <div class="results-header">
                     <div class="album-info-display">
-                        <div id="resultAlbumCover" class="album-cover-medium"></div>
+                        <div id="finalAlbumCover" class="album-cover-medium"></div>
                         <div>
-                            <h2 id="resultAlbumTitle"></h2>
-                            <p id="resultArtistName"></p>
+                            <h2 id="finalAlbumTitle"></h2>
+                            <p id="finalArtistName"></p>
                             <div class="album-score">
                                 <span class="score-label">Album Score:</span>
-                                <span class="score-value" id="albumAverageScore">0.00</span>
+                                <span class="score-value" id="finalAlbumScore">0.00</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="results-container">
-                    <div id="trackRatingsList" class="track-ratings-list">
-                        <!-- Track ratings will be displayed here -->
-                    </div>
-
-                    <div id="ratingMatrixDisplay" class="rating-matrix-display">
-                        <!-- Full rating matrix will be displayed here -->
-                    </div>
-
-                    <!-- Memory Section -->
-                    <div id="memorySection" class="memory-section">
-                        <!-- Photo upload and review section will be generated here -->
+                    <h3>Track Ratings</h3>
+                    <div id="finalTrackRatings" class="track-ratings-list">
+                        <!-- Final track ratings -->
                     </div>
 
                     <div class="results-actions">
-                        <button type="button" class="btn btn-secondary" onclick="goToStep(4)">Back to Edit Ratings</button>
-                        <a href="albums.html" class="btn btn-primary">View All Albums</a>
+                        <a href="albums.html" class="btn btn-primary">View in Albums</a>
+                        <button class="btn btn-secondary" id="newPartyBtn">Start New Party</button>
                         <a href="../index.html" class="btn btn-secondary">Back to Home</a>
                     </div>
                 </div>
-            </section>
+            </div>
         </main>
     </div>
 
