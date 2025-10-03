@@ -169,12 +169,73 @@ async function openAlbumModal(albumId) {
     
     try {
         const doc = await db.collection('albums').doc(albumId).get();
+        
         if (!doc.exists) {
             showNotification('Album not found', 'error');
             return;
         }
         
         const album = doc.data();
+        
+        // Calculate scores
+        const nonInterludeTracks = album.tracks.filter(t => !t.isInterlude);
+        let trackScores = [];
+        
+        if (album.isCompleted && album.ratings) {
+            nonInterludeTracks.forEach(track => {
+                const ratings = Object.values(album.ratings[track.number] || {}).filter(r => r !== null);
+                if (ratings.length > 0) {
+                    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+                    trackScores.push({
+                        track: track,
+                        average: avg
+                    });
+                }
+            });
+            trackScores.sort((a, b) => b.average - a.average);
+        }
+        
+        const bestTrack = trackScores[0];
+        const worstTrack = trackScores[trackScores.length - 1];
+        
+        // Build memory section HTML
+        let memoryHTML = '';
+        if ((album.memoryPhotos && album.memoryPhotos.length > 0) || album.memoryReview) {
+            memoryHTML = `
+                <div class="modal-memory-section">
+                    <h3>📸 Memory from the Night</h3>
+                    ${album.memoryPhotos && album.memoryPhotos.length > 0 ? `
+                        <div class="modal-memory-gallery">
+                            ${album.memoryPhotos.length === 1 ? `
+                                <div class="modal-memory-photo-single">
+                                    <img src="${album.memoryPhotos[0]}" alt="Memory Photo">
+                                </div>
+                            ` : `
+                                <div class="modal-memory-photo-grid">
+                                    ${album.memoryPhotos.map((photo, index) => `
+                                        <div class="modal-gallery-item" onclick="openPhotoLightbox(${index}, ${JSON.stringify(album.memoryPhotos).replace(/"/g, '&quot;')})">
+                                            <img src="${photo}" alt="Memory Photo ${index + 1}">
+                                            <div class="gallery-item-overlay">
+                                                <span class="gallery-item-number">${index + 1}/${album.memoryPhotos.length}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </div>
+                    ` : ''}
+                    ${album.memoryReview ? `
+                        <div class="modal-memory-review">
+                            <h4>✍️ Review</h4>
+                            <p>${album.memoryReview}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        // Build the modal HTML with memory section
+        const modalBody = document.querySelector('#albumModal .album-modal-content');
         
         // Set header info
         document.getElementById('modalAlbumTitle').textContent = album.title;
@@ -184,7 +245,7 @@ async function openAlbumModal(albumId) {
         document.getElementById('modalDate').textContent = formatDate(album.createdAt);
         document.getElementById('modalTrackCount').textContent = album.trackCount || album.tracks?.length || 0;
         
-        // Load participant data with profile pictures
+        // Load participant data
         const participantData = await getParticipantData(album.participants || []);
         displayModalParticipants(participantData);
         
@@ -197,6 +258,17 @@ async function openAlbumModal(albumId) {
         
         // Display rating matrix
         displayModalMatrix(album, participantData);
+        
+        // Add memory section if it exists
+const existingMemory = document.querySelector('.modal-memory-section');
+if (existingMemory) {
+    existingMemory.remove();
+}
+
+if (memoryHTML) {
+    const modalActions = document.querySelector('#albumModal .modal-actions');
+    modalActions.insertAdjacentHTML('beforebegin', memoryHTML);
+}
         
         document.getElementById('albumModal').style.display = 'flex';
     } catch (error) {
@@ -613,3 +685,64 @@ async function saveAlbumEdits(e) {
         showNotification('Error updating album', 'error');
     }
 }
+
+// Photo Lightbox for viewing full-size images
+function openPhotoLightbox(startIndex, photos) {
+    let currentIndex = startIndex;
+    
+    const lightbox = document.createElement('div');
+    lightbox.className = 'photo-lightbox';
+    lightbox.innerHTML = `
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="this.closest('.photo-lightbox').remove()">✕</button>
+            <button class="lightbox-prev">‹</button>
+            <button class="lightbox-next">›</button>
+            <div class="lightbox-image-container">
+                <img src="${photos[currentIndex]}" alt="Memory Photo" id="lightboxImage">
+            </div>
+            <div class="lightbox-counter">${currentIndex + 1} / ${photos.length}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(lightbox);
+    
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) {
+            lightbox.remove();
+        }
+    });
+    
+    const updateImage = () => {
+        document.getElementById('lightboxImage').src = photos[currentIndex];
+        lightbox.querySelector('.lightbox-counter').textContent = `${currentIndex + 1} / ${photos.length}`;
+    };
+    
+    lightbox.querySelector('.lightbox-prev').addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+        updateImage();
+    });
+    
+    lightbox.querySelector('.lightbox-next').addEventListener('click', (e) => {
+        e.stopPropagation();
+        currentIndex = (currentIndex + 1) % photos.length;
+        updateImage();
+    });
+    
+    const handleKeyboard = (e) => {
+        if (e.key === 'ArrowLeft') {
+            currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+            updateImage();
+        } else if (e.key === 'ArrowRight') {
+            currentIndex = (currentIndex + 1) % photos.length;
+            updateImage();
+        } else if (e.key === 'Escape') {
+            lightbox.remove();
+            document.removeEventListener('keydown', handleKeyboard);
+        }
+    };
+    
+    document.addEventListener('keydown', handleKeyboard);
+}
+
+window.openPhotoLightbox = openPhotoLightbox;

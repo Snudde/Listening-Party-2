@@ -558,7 +558,10 @@ async function nextTrack() {
     }
 }
 
-// Finish party and save to albums
+// Party Mode Awards Ceremony Enhancement
+// Add these functions to party-mode-host.js
+
+// Replace the existing finishParty function with this enhanced version
 async function finishParty() {
     try {
         // Check if last track is rated
@@ -573,10 +576,11 @@ async function finishParty() {
             if (!confirm) return;
         }
         
-        // Calculate album average (excluding interludes)
+        // Calculate album average and track scores
         const nonInterludeTracks = partySession.tracks.filter(t => !t.isInterlude);
         let albumTotal = 0;
         let albumCount = 0;
+        const trackScores = [];
         
         nonInterludeTracks.forEach(track => {
             const ratings = Object.values(partySession.ratings[track.number] || {}).filter(r => r !== null);
@@ -584,25 +588,27 @@ async function finishParty() {
                 const trackAvg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
                 albumTotal += trackAvg;
                 albumCount++;
+                trackScores.push({
+                    track: track,
+                    average: trackAvg
+                });
             }
         });
         
         const albumAverage = albumCount > 0 ? parseFloat((albumTotal / albumCount).toFixed(2)) : 0;
         
-        // Get participant IDs (only real participants, not guest IDs)
+        // Get participant IDs
         const participantIds = partySession.participants
-            .filter(p => p.participantId) // Only those linked to profiles
+            .filter(p => p.participantId)
             .map(p => p.participantId);
         
-        // Remap ratings to use participant IDs instead of guest IDs
+        // Remap ratings
         const remappedRatings = {};
         Object.keys(partySession.ratings).forEach(trackNum => {
             remappedRatings[trackNum] = {};
             
             partySession.participants.forEach(participant => {
                 const rating = partySession.ratings[trackNum][participant.id];
-                
-                // If they have a participant ID, use that; otherwise use guest ID
                 const idToUse = participant.participantId || participant.id;
                 
                 if (rating !== null && rating !== undefined) {
@@ -628,7 +634,7 @@ async function finishParty() {
         
         partySession.albumId = albumDoc.id;
         
-        // Update session to results phase
+        // Update session
         await db.collection('party-sessions').doc(partySession.roomCode).update({
             phase: 'results',
             albumId: albumDoc.id,
@@ -636,8 +642,11 @@ async function finishParty() {
         });
         
         partySession.phase = 'results';
+        partySession.albumAverage = albumAverage;  // ADD THIS LINE
         
-        showResults(albumAverage);
+        
+        // START AWARDS CEREMONY
+        showAwardsCeremony(albumAverage, trackScores);
         
         console.log('✅ Party finished and saved to albums');
         
@@ -645,7 +654,447 @@ async function finishParty() {
         console.error('❌ Error finishing party:', error);
         showNotification('Error finishing party', 'error');
     }
+
+
 }
+
+
+
+// Awards Ceremony with Countdown
+function showAwardsCeremony(albumAverage, trackScores) {
+    const overlay = document.createElement('div');
+    overlay.id = 'awardsCeremonyOverlay';
+    overlay.className = 'awards-overlay';
+    overlay.innerHTML = `
+        <div class="awards-content">
+            <h2 class="awards-title">🎬 Awards Ceremony</h2>
+            <p class="awards-subtitle">Calculating the results...</p>
+            <div class="awards-countdown" id="awardsCountdown">3</div>
+            <div class="awards-loading">
+                <div class="loading-bar"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    let count = 3;
+    const countdownEl = document.getElementById('awardsCountdown');
+    
+    const countdownInterval = setInterval(() => {
+        count--;
+        if (count > 0) {
+            countdownEl.textContent = count;
+            countdownEl.style.animation = 'none';
+            setTimeout(() => {
+                countdownEl.style.animation = 'countdownPulse 1s ease-out';
+            }, 10);
+        } else {
+            clearInterval(countdownInterval);
+            revealResults(albumAverage, trackScores);
+        }
+    }, 1000);
+}
+
+// Reveal Results with Big Score
+function revealResults(albumAverage, trackScores) {
+    const overlay = document.getElementById('awardsCeremonyOverlay');
+    const content = overlay.querySelector('.awards-content');
+    
+    const scoreClass = getScoreClass(albumAverage);
+    
+    // Find best and worst tracks
+    trackScores.sort((a, b) => b.average - a.average);
+    const bestTrack = trackScores[0];
+    const worstTrack = trackScores[trackScores.length - 1];
+    
+    const tierNames = {
+        'trash': '🗑️ TRASH TIER',
+        'mid': '🟢 MID TIER',
+        'good': '🔵 GOOD TIER',
+        'epic': '🟣 EPIC TIER',
+        'legendary': '🟠 LEGENDARY TIER'
+    };
+    const tierName = tierNames[scoreClass] || 'RATED';
+    
+    content.innerHTML = `
+        <div class="results-reveal">
+            <h2 class="reveal-title">🎉 And the score is...</h2>
+            <div class="score-reveal-box ${scoreClass}">
+                <div class="score-reveal-number">${albumAverage}</div>
+                <div class="score-reveal-tier">${tierName}</div>
+            </div>
+            <div class="score-reveal-album">
+                <strong>${partySession.albumTitle}</strong> by ${partySession.artistName}
+            </div>
+            ${bestTrack ? `
+                <div class="awards-highlights">
+                    <div class="award-badge">
+                        <span class="award-icon">🏆</span>
+                        <div class="award-info">
+                            <div class="award-label">Best Track</div>
+                            <div class="award-value">${bestTrack.track.title}</div>
+                            <div class="award-score">${bestTrack.average.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    ${worstTrack && worstTrack !== bestTrack ? `
+                        <div class="award-badge">
+                            <span class="award-icon">💔</span>
+                            <div class="award-info">
+                                <div class="award-label">Lowest Rated</div>
+                                <div class="award-value">${worstTrack.track.title}</div>
+                                <div class="award-score">${worstTrack.average.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+            <button class="btn btn-primary continue-btn" onclick="closeAwardsAndShowResults()">
+                Continue to Full Results
+            </button>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        createConfetti(scoreClass);
+        const scoreBox = content.querySelector('.score-reveal-box');
+        scoreBox.style.animation = 'scoreRevealAnimation 1s ease-out';
+    }, 100);
+}
+
+// Close awards and show full results with memory upload
+function closeAwardsAndShowResults() {
+    const overlay = document.getElementById('awardsCeremonyOverlay');
+    overlay.style.animation = 'fadeOut 0.5s ease-out';
+    setTimeout(() => {
+        overlay.remove();
+        showResultsWithMemory();
+    }, 500);
+}
+
+// Enhanced showResults with memory upload section
+function showResultsWithMemory() {
+    document.getElementById('activePhase').style.display = 'none';
+    document.getElementById('resultsPhase').style.display = 'block';
+    
+    const albumAverage = partySession.albumAverage || 0;
+    
+    // Display album info
+    document.getElementById('finalAlbumTitle').textContent = partySession.albumTitle;
+    document.getElementById('finalArtistName').textContent = partySession.artistName;
+    document.getElementById('finalAlbumScore').textContent = albumAverage;
+    document.getElementById('finalAlbumScore').className = 'score-value ' + getScoreClass(albumAverage);
+    
+    if (partySession.albumCover) {
+        document.getElementById('finalAlbumCover').innerHTML = `<img src="${partySession.albumCover}" alt="Album Cover">`;
+    }
+    
+    // Display track ratings with better formatting
+    const trackList = document.getElementById('finalTrackRatings');
+    trackList.innerHTML = '<h3>Track Breakdown</h3>';
+    
+    partySession.tracks.forEach(track => {
+        const ratings = Object.values(partySession.ratings[track.number] || {}).filter(r => r !== null);
+        const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(2) : 'N/A';
+        
+        const trackItem = document.createElement('div');
+        trackItem.className = 'track-result-item';
+        trackItem.innerHTML = `
+            <div class="track-result-info">
+                <strong>${track.number}. ${track.title}</strong>
+                ${track.isInterlude ? '<span class="interlude-badge">Interlude</span>' : ''}
+            </div>
+            <div class="track-result-score ${getScoreClass(parseFloat(avg))}">${avg}</div>
+        `;
+        trackList.appendChild(trackItem);
+    });
+    
+    // Add rating matrix after track list
+    const resultsContainer = document.querySelector('#resultsPhase .results-container');
+    
+    // Check if matrix already exists
+    let matrixSection = document.getElementById('partyRatingMatrix');
+    if (!matrixSection) {
+        matrixSection = document.createElement('div');
+        matrixSection.id = 'partyRatingMatrix';
+        matrixSection.style.marginTop = '40px';
+        trackList.parentNode.insertBefore(matrixSection, trackList.nextSibling);
+    }
+    
+    matrixSection.innerHTML = '<h3>Full Rating Matrix</h3>';
+    
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    
+    // Header
+    let headerHTML = '<thead><tr><th>Track</th>';
+    partySession.participants.forEach(p => {
+        headerHTML += `<th>${p.name}</th>`;
+    });
+    headerHTML += '<th>Average</th></tr></thead>';
+    table.innerHTML = headerHTML;
+    
+    // Body
+    let bodyHTML = '<tbody>';
+    partySession.tracks.forEach(track => {
+        bodyHTML += `<tr><td><strong>${track.number}.</strong> ${track.title}</td>`;
+        
+        partySession.participants.forEach(p => {
+            const rating = partySession.ratings[track.number][p.id];
+            bodyHTML += `<td>${rating !== null && rating !== undefined ? formatScore(rating) : '-'}</td>`;
+        });
+        
+        const ratings = Object.values(partySession.ratings[track.number] || {}).filter(r => r !== null);
+        const avg = ratings.length > 0 ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(2) : '-';
+        bodyHTML += `<td class="${getScoreClass(parseFloat(avg))}"><strong>${avg}</strong></td>`;
+        bodyHTML += '</tr>';
+    });
+    bodyHTML += '</tbody>';
+    table.innerHTML += bodyHTML;
+    
+    matrixSection.appendChild(table);
+    
+    // Add memory upload section
+    addMemorySection();
+}
+
+// Add memory upload section to results
+function addMemorySection() {
+    const resultsContainer = document.querySelector('#resultsPhase .results-container');
+    
+    // Check if memory section already exists
+    if (document.getElementById('partyMemorySection')) {
+        return;
+    }
+    
+    const memorySection = document.createElement('div');
+    memorySection.id = 'partyMemorySection';
+    memorySection.className = 'memory-section';
+    memorySection.innerHTML = `
+        <h3>📸 Capture the Memory</h3>
+        <p class="memory-subtitle">Add photos and a review to remember this listening party</p>
+        
+        <div class="memory-upload-section">
+            <div class="memory-photos-upload">
+                <label for="partyMemoryPhotos" class="memory-upload-label">
+                    <div class="memory-upload-box" id="partyMemoryPhotosBox">
+                        <span class="upload-icon">📷</span>
+                        <span class="upload-text">Upload Photos</span>
+                        <span class="upload-hint">Click to add up to 5 photos from the party</span>
+                    </div>
+                </label>
+                <input type="file" id="partyMemoryPhotos" accept="image/*" multiple style="display: none;">
+                
+                <div id="partyPhotoPreviewGrid" class="photo-preview-grid" style="display: none;">
+                    <!-- Photo thumbnails will appear here -->
+                </div>
+                <p class="photo-count-text" id="partyPhotoCountText" style="display: none;">
+                    <span id="partyPhotoCount">0</span>/5 photos selected
+                </p>
+            </div>
+            
+            <div class="memory-review-section">
+                <label for="partyMemoryReview" class="memory-label">
+                    <span>✍️ Write a Review</span>
+                    <span class="optional-tag">Optional</span>
+                </label>
+                <textarea 
+                    id="partyMemoryReview" 
+                    class="memory-review-textarea"
+                    placeholder="How was the listening experience? Any memorable moments, discussions, or thoughts about the album?"
+                    rows="6"
+                ></textarea>
+                <div class="character-count">
+                    <span id="partyReviewCharCount">0</span>/500 characters
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn btn-success" id="savePartyMemoryBtn">
+            💾 Save Memory
+        </button>
+    `;
+    
+    // Insert before results-actions
+    const actionsDiv = resultsContainer.querySelector('.results-actions');
+    resultsContainer.insertBefore(memorySection, actionsDiv);
+    
+    // Add event listeners
+    document.getElementById('partyMemoryPhotos').addEventListener('change', handlePartyMemoryPhotosUpload);
+    document.getElementById('savePartyMemoryBtn').addEventListener('click', savePartyMemory);
+    
+    const textarea = document.getElementById('partyMemoryReview');
+    textarea.addEventListener('input', () => {
+        const count = textarea.value.length;
+        document.getElementById('partyReviewCharCount').textContent = count;
+        if (count > 500) {
+            textarea.value = textarea.value.substring(0, 500);
+            document.getElementById('partyReviewCharCount').textContent = 500;
+        }
+    });
+    
+    // Initialize photo storage
+    partySession.memoryPhotoFiles = [];
+}
+
+// Handle memory photos upload
+function handlePartyMemoryPhotosUpload(event) {
+    const files = Array.from(event.target.files);
+    const maxPhotos = 5;
+    
+    if (partySession.memoryPhotoFiles.length + files.length > maxPhotos) {
+        showNotification(`Maximum ${maxPhotos} photos allowed`, 'error');
+        const remaining = maxPhotos - partySession.memoryPhotoFiles.length;
+        if (remaining > 0) {
+            files.splice(remaining);
+        } else {
+            return;
+        }
+    }
+    
+    files.forEach(file => {
+        partySession.memoryPhotoFiles.push(file);
+    });
+    
+    updatePartyPhotoPreview();
+}
+
+// Update photo preview
+function updatePartyPhotoPreview() {
+    const uploadBox = document.getElementById('partyMemoryPhotosBox');
+    const previewGrid = document.getElementById('partyPhotoPreviewGrid');
+    const countText = document.getElementById('partyPhotoCountText');
+    const photoCount = document.getElementById('partyPhotoCount');
+    
+    if (partySession.memoryPhotoFiles.length > 0) {
+        uploadBox.style.display = 'none';
+        previewGrid.style.display = 'grid';
+        countText.style.display = 'block';
+        photoCount.textContent = partySession.memoryPhotoFiles.length;
+        
+        previewGrid.innerHTML = '';
+        
+        partySession.memoryPhotoFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const photoCard = document.createElement('div');
+                photoCard.className = 'photo-preview-card';
+                photoCard.innerHTML = `
+                    <img src="${e.target.result}" alt="Memory Photo ${index + 1}">
+                    <button class="remove-photo-btn" onclick="removePartyMemoryPhoto(${index})">✕</button>
+                    <div class="photo-number">${index + 1}</div>
+                `;
+                previewGrid.appendChild(photoCard);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+        
+        if (partySession.memoryPhotoFiles.length < 5) {
+            const addMoreCard = document.createElement('div');
+            addMoreCard.className = 'photo-preview-card add-more-card';
+            addMoreCard.onclick = () => document.getElementById('partyMemoryPhotos').click();
+            addMoreCard.innerHTML = `
+                <span class="add-more-icon">➕</span>
+                <span class="add-more-text">Add More</span>
+            `;
+            previewGrid.appendChild(addMoreCard);
+        }
+    } else {
+        uploadBox.style.display = 'flex';
+        previewGrid.style.display = 'none';
+        countText.style.display = 'none';
+    }
+}
+
+// Remove specific photo
+function removePartyMemoryPhoto(index) {
+    partySession.memoryPhotoFiles.splice(index, 1);
+    updatePartyPhotoPreview();
+    document.getElementById('partyMemoryPhotos').value = '';
+    
+    if (partySession.memoryPhotoFiles.length === 0) {
+        showNotification('All photos removed', 'info');
+    }
+}
+
+// Save party memory
+async function savePartyMemory() {
+    try {
+        showNotification('Saving memory...', 'info');
+        
+        const review = document.getElementById('partyMemoryReview').value.trim();
+        const memoryPhotoUrls = [];
+        
+        if (partySession.memoryPhotoFiles && partySession.memoryPhotoFiles.length > 0) {
+            for (let i = 0; i < partySession.memoryPhotoFiles.length; i++) {
+                const file = partySession.memoryPhotoFiles[i];
+                const photoPath = `memories/${partySession.albumId}_${Date.now()}_${i}_${file.name}`;
+                const photoUrl = await uploadImage(file, photoPath);
+                memoryPhotoUrls.push(photoUrl);
+                
+                showNotification(`Uploading photo ${i + 1}/${partySession.memoryPhotoFiles.length}...`, 'info');
+            }
+        }
+        
+        await db.collection('albums').doc(partySession.albumId).update({
+            memoryPhotos: memoryPhotoUrls,
+            memoryReview: review,
+            memoryAddedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        showNotification(`✅ Memory saved with ${memoryPhotoUrls.length} photo(s)!`, 'success');
+        
+        document.getElementById('partyMemorySection').innerHTML = `
+            <div class="memory-saved">
+                <span class="success-icon">✅</span>
+                <h3>Memory Saved!</h3>
+                <p>Your ${memoryPhotoUrls.length} photo${memoryPhotoUrls.length !== 1 ? 's' : ''} and review have been added to this album</p>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error saving memory:', error);
+        showNotification('Error saving memory', 'error');
+    }
+}
+
+// Confetti function
+function createConfetti(scoreClass) {
+    const colors = {
+        'trash': ['#6b7280', '#9ca3af'],
+        'mid': ['#22c55e', '#4ade80'],
+        'good': ['#3b82f6', '#60a5fa'],
+        'epic': ['#a855f7', '#c084fc'],
+        'legendary': ['#f97316', '#fb923c']
+    };
+    
+    const confettiColors = colors[scoreClass] || ['#6366f1', '#8b5cf6', '#ec4899'];
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.backgroundColor = confettiColors[Math.floor(Math.random() * confettiColors.length)];
+            confetti.style.animationDelay = Math.random() * 0.5 + 's';
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            confetti.style.position = 'fixed';
+            confetti.style.top = '-10px';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.zIndex = '10001';
+            confetti.style.pointerEvents = 'none';
+            document.getElementById('awardsCeremonyOverlay').appendChild(confetti);
+            
+            setTimeout(() => confetti.remove(), 4000);
+        }, i * 10);
+    }
+}
+
+// Make functions globally available
+window.closeAwardsAndShowResults = closeAwardsAndShowResults;
+window.removePartyMemoryPhoto = removePartyMemoryPhoto;
 
 // Show results
 function showResults(albumAverage) {
@@ -808,3 +1257,4 @@ window.addEventListener('beforeunload', () => {
         unsubscribe();
     }
 });
+
