@@ -250,22 +250,27 @@ header p {
 
 .recent-album-card.trash {
     border-color: var(--trash);
+    background-color: var(--trash);
 }
 
 .recent-album-card.mid {
     border-color: var(--mid);
+    background-color: var(--mid);
 }
 
 .recent-album-card.good {
     border-color: var(--good);
+    background-color: var(--good);
 }
 
 .recent-album-card.epic {
     border-color: var(--epic);
+    background-color: var(--epic);
 }
 
 .recent-album-card.legendary {
     border-color: var(--legendary);
+    background-color: var(--legendary);
 }
 
 .recent-album-card:hover {
@@ -325,7 +330,7 @@ header p {
 
 .recent-album-info p {
     margin: 0 0 10px 0;
-    color: var(--text-secondary);
+    color: #fff;
     font-size: 0.85rem;
     white-space: nowrap;
     overflow: hidden;
@@ -338,6 +343,7 @@ header p {
     border-radius: 6px;
     font-weight: bold;
     font-size: 0.9rem;
+    border: 1px solid #fff;
 }
 
 .empty-state-small {
@@ -897,6 +903,8 @@ header p {
     display: flex;
     gap: 20px;
     align-items: center;
+    flex-direction: column;
+    text-align: center;
 }
 
 .album-cover-small {
@@ -1356,6 +1364,7 @@ header p {
 .status-badge.completed {
     background: rgba(16, 185, 129, 0.9);
     color: white;
+    display: none;
 }
 
 .status-badge.in-progress {
