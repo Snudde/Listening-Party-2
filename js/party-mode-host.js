@@ -676,6 +676,9 @@ async function finishParty() {
         showNotification('Error finishing party', 'error');
     }
 
+    // Show results
+showResults();
+
     // NEW: Render bingo results if bingo was enabled
     if (partySession.bingoBoards) {
         renderBingoResults();
