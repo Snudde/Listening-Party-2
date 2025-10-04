@@ -433,10 +433,11 @@ async function startParty() {
         
        
         
-        // Update session to active phase
+ // Update session to active phase
 await db.collection('party-sessions').doc(partySession.roomCode).update({
     phase: 'active',
-    currentTrackIndex: 0
+    currentTrackIndex: 0,
+    bingoBoards: partySession.bingoBoards || null  // ADD THIS LINE
 });
         
         partySession.phase = 'active';
