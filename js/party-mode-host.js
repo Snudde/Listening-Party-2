@@ -672,17 +672,25 @@ async function finishParty() {
             });
         });
 
-        // Calculate which participants earned bingo LPC
+// Calculate which participants earned bingo LPC
+// IMPORTANT: Fetch latest bingo boards from Firestore to get updated lpcAwarded flags
 const bingoLPCAwarded = {};
-if (partySession.bingoBoards) {
-    partySession.participants.forEach(participant => {
-        if (participant.participantId) { // Only real participants, not guests
-            const board = partySession.bingoBoards[participant.id];
-            if (board && board.lpcAwarded) {
-                bingoLPCAwarded[participant.participantId] = true;
+if (partySession.bingoContainerId) {
+    // Get the latest bingo boards from the party session
+    const sessionDoc = await db.collection('party-sessions').doc(partySession.roomCode).get();
+    const latestBingoBoards = sessionDoc.data().bingoBoards;
+    
+    if (latestBingoBoards) {
+        partySession.participants.forEach(participant => {
+            if (participant.participantId) {
+                const board = latestBingoBoards[participant.id];
+                if (board && board.lpcAwarded) {
+                    bingoLPCAwarded[participant.participantId] = true;
+                    console.log(`✅ ${participant.name} earned bingo LPC - will track in album`);
+                }
             }
-        }
-    });
+        });
+    }
 }
         
         // Save to albums collection
