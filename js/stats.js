@@ -133,6 +133,26 @@ displaySocialStats(participantId, albumsData, allRatings);
 console.log('🔍 CALLED displaySocialStats');
 displayNerdyPersonalStats(allRatings, albumsData, participantId);
 console.log('🔍 CALLED displayNerdyPersonalStats');
+
+// ==================== NEW: ACHIEVEMENT SYSTEM ====================
+        // Check and award achievements
+        console.log('🏆 Checking achievements...');
+        const achievementResult = await checkAndAwardAchievements(
+            participantId, 
+            allRatings, 
+            albumsData
+        );
+        
+        console.log('✅ Achievement check complete:', achievementResult);
+        if (achievementResult.newAchievements.length > 0) {
+            console.log(`🎉 ${achievementResult.newAchievements.length} new achievements unlocked!`);
+            console.log(`💰 ${achievementResult.lpcAwarded} LPC awarded!`);
+        }
+        
+        // Render achievements section on the page
+        await renderAchievementsSection(participantId, allRatings, albumsData);
+        console.log('✅ Achievements section rendered');
+        // ================================================================
     } catch (error) {
         console.error('❌ Error loading stats:', error);
         showNotification('Error loading statistics', 'error');
