@@ -814,15 +814,17 @@ async function loadGlobalStats() {
         const participantStats = {};
         
         participants.forEach(p => {
-            participantStats[p.id] = {
-                name: p.username,
-                allRatings: [],
-                albumCount: 0,
-                tens: 0,
-                lowRatings: 0,
-                legendaryRatings: 0
-            };
-        });
+    participantStats[p.id] = {
+        name: p.username,
+        allRatings: [],
+        albumCount: 0,
+        tens: 0,
+        lowRatings: 0,
+        legendaryRatings: 0,
+        bingoWins: 0,  // NEW
+        lpc: p.lpc || 0  // NEW
+    };
+})
         
         albums.forEach(album => {
             album.participants.forEach(pId => {
@@ -841,6 +843,17 @@ async function loadGlobalStats() {
                 }
             });
         });
+
+        // Count bingo wins
+albums.forEach(album => {
+    if (album.bingoLPCAwarded) {
+        Object.keys(album.bingoLPCAwarded).forEach(participantId => {
+            if (album.bingoLPCAwarded[participantId] === true && participantStats[participantId]) {
+                participantStats[participantId].bingoWins++;
+            }
+        });
+    }
+});
         
         // Calculate averages and variances
         Object.values(participantStats).forEach(stats => {
@@ -934,6 +947,20 @@ const perfectScoreGiver = statsArray.reduce((max, p) => p.tens > max.tens ? p : 
 document.getElementById('perfectScoreGiver').innerHTML = `
     ${createParticipantDisplay(perfectScoreGiver.name)}
     <span class="leaderboard-stat">${perfectScoreGiver.tens} perfect 10s</span>
+`;
+
+// NEW: Bingo Champion
+const bingoChampion = statsArray.reduce((max, p) => p.bingoWins > max.bingoWins ? p : max);
+document.getElementById('bingoChampion').innerHTML = bingoChampion.bingoWins > 0 ? `
+    ${createParticipantDisplay(bingoChampion.name)}
+    <span class="leaderboard-stat">${bingoChampion.bingoWins} bingo win${bingoChampion.bingoWins !== 1 ? 's' : ''}</span>
+` : '<span class="leaderboard-stat">No bingo wins yet</span>';
+
+// NEW: Richest Player
+const richestPlayer = statsArray.reduce((max, p) => p.lpc > max.lpc ? p : max);
+document.getElementById('richestPlayer').innerHTML = `
+    ${createParticipantDisplay(richestPlayer.name)}
+    <span class="leaderboard-stat">${richestPlayer.lpc.toLocaleString()} LPC</span>
 `;
         
         // Album stats (with clickable albums)
