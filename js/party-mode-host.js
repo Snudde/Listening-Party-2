@@ -619,6 +619,8 @@ async function nextTrack() {
 // Replace the existing finishParty function with this enhanced version
 async function finishParty() {
     try {
+       
+
         // Check if last track is rated
         const trackNum = partySession.currentTrackIndex + 1;
         const trackRatings = partySession.ratings[trackNum] || {};
@@ -673,32 +675,28 @@ async function finishParty() {
         });
 
 // Calculate which participants earned bingo LPC
-// IMPORTANT: Fetch latest bingo boards from Firestore to get updated lpcAwarded flags
+// Use LOCAL bingoBoards state which is most up-to-date
 const bingoLPCAwarded = {};
-if (partySession.bingoContainerId) {
-    // Get the latest bingo boards from the party session
-    const sessionDoc = await db.collection('party-sessions').doc(partySession.roomCode).get();
-    const latestBingoBoards = sessionDoc.data().bingoBoards;
+if (partySession.bingoContainerId && partySession.bingoBoards) {
+    console.log('🔍 Checking bingo LPC awards...');
     
-    console.log('🔍 Fetched latestBingoBoards from Firestore:', latestBingoBoards);
-    console.log('🔍 partySession.participants:', partySession.participants);
-    
-    if (latestBingoBoards) {
-        partySession.participants.forEach(participant => {
-            console.log(`🔍 Checking participant: ${participant.name}, guest ID: ${participant.id}, real ID: ${participant.participantId}`);
+    partySession.participants.forEach(participant => {
+        console.log(`🔍 Checking participant: ${participant.name}, guest ID: ${participant.id}, real ID: ${participant.participantId}`);
+        
+        if (participant.participantId) {
+            const board = partySession.bingoBoards[participant.id];
+            console.log(`🔍 Board for ${participant.name}:`, board);
+            console.log(`🔍 hasBingo:`, board?.hasBingo);
+            console.log(`🔍 lpcAwarded flag:`, board?.lpcAwarded);
             
-            if (participant.participantId) {
-                const board = latestBingoBoards[participant.id];
-                console.log(`🔍 Board for ${participant.name}:`, board);
-                console.log(`🔍 lpcAwarded flag:`, board?.lpcAwarded);
-                
-                if (board && board.lpcAwarded) {
-                    bingoLPCAwarded[participant.participantId] = true;
-                    console.log(`✅ ${participant.name} earned bingo LPC - will track in album`);
-                }
+            // Track if they got bingo AND had LPC awarded
+            // OR if they just got bingo (to handle the sync issue)
+            if (board && board.hasBingo) {
+                bingoLPCAwarded[participant.participantId] = true;
+                console.log(`✅ ${participant.name} got bingo - will track 10 LPC for deduction`);
             }
-        });
-    }
+        }
+    });
     
     console.log('🔍 Final bingoLPCAwarded object:', bingoLPCAwarded);
 }
