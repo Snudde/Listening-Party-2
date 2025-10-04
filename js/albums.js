@@ -582,11 +582,6 @@ async function confirmDeleteAlbum() {
 console.log('🔍 Checking bingo for participant:', participantId);
 console.log('🔍 album.partyMode:', album.partyMode);
 console.log('🔍 album.bingoLPCAwarded:', album.bingoLPCAwarded);
-
-if (album.partyMode && album.bingoLPCAwarded && album.bingoLPCAwarded[participantId]) {
-    lpcToDeduct += 10; // BINGO_LPC_REWARD
-    console.log(`Adding 10 LPC deduction for bingo from ${participantId}`);
-}
                 
                // Check for bingo LPC (if this was a party mode album with bingo)
 if (album.partyMode && album.bingoLPCAwarded && album.bingoLPCAwarded[participantId]) {

@@ -716,7 +716,7 @@ if (partySession.bingoContainerId) {
             isCompleted: true,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             partyMode: true,
-            bingoLPCAwarded: bingoLPCAwarded
+            bingoLPCAwarded: Object.keys(bingoLPCAwarded).length > 0 ? bingoLPCAwarded : null  // Changed this line
         });
         
         partySession.albumId = albumDoc.id;
