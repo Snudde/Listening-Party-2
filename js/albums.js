@@ -444,20 +444,207 @@ function closeDeleteConfirmModal() {
 }
 
 // Confirm delete album
+// Confirm delete album with LPC rollback
 async function confirmDeleteAlbum() {
     if (!currentAlbumId) return;
     
     try {
+        showNotification('Calculating LPC to deduct...', 'info');
+        
+        // Get the album data before deleting
+        const albumDoc = await db.collection('albums').doc(currentAlbumId).get();
+        if (!albumDoc.exists) {
+            showNotification('Album not found', 'error');
+            return;
+        }
+        
+        const album = albumDoc.data();
+        const participants = album.participants || [];
+        
+        // Calculate how much LPC needs to be deducted per participant
+        const lpcAdjustments = {};
+        
+        for (const participantId of participants) {
+            let lpcToDeduct = 0;
+            
+            // Calculate achievements that would have been earned from this album
+            // We need to recalculate stats WITHOUT this album
+            const allAlbumsSnapshot = await db.collection('albums')
+                .where('participants', 'array-contains', participantId)
+                .get();
+            
+            const albumsWithThis = [];
+            const albumsWithoutThis = [];
+            
+            allAlbumsSnapshot.forEach(doc => {
+                if (doc.id === currentAlbumId) {
+                    albumsWithThis.push({ id: doc.id, ...doc.data() });
+                } else {
+                    albumsWithoutThis.push({ id: doc.id, ...doc.data() });
+                }
+            });
+            
+            // Get ratings from all albums (with and without this one)
+            const ratingsWithThis = [];
+            const ratingsWithoutThis = [];
+            
+            albumsWithThis.forEach(album => {
+                if (album.ratings && album.tracks) {
+                    album.tracks.forEach(track => {
+                        const rating = album.ratings[track.number]?.[participantId];
+                        if (rating !== null && rating !== undefined) {
+                            ratingsWithThis.push({ rating });
+                        }
+                    });
+                }
+            });
+            
+            albumsWithoutThis.forEach(album => {
+                if (album.ratings && album.tracks) {
+                    album.tracks.forEach(track => {
+                        const rating = album.ratings[track.number]?.[participantId];
+                        if (rating !== null && rating !== undefined) {
+                            ratingsWithoutThis.push({ rating });
+                        }
+                    });
+                }
+            });
+            
+            // Check which achievements would be lost
+            const participantDoc = await db.collection('participants').doc(participantId).get();
+            if (participantDoc.exists) {
+                const participantData = participantDoc.data();
+                const currentAchievements = participantData.achievements || {};
+                
+                // Calculate stats with and without this album
+                const statsWithThis = {
+                    tracksRated: ratingsWithThis.length,
+                    albumsRated: albumsWithThis.length,
+                    perfect10Count: ratingsWithThis.filter(r => r.rating === 10).length,
+                    harshRatingsCount: ratingsWithThis.filter(r => r.rating < 5).length,
+                    ratingsUsed: new Set(ratingsWithThis.map(r => r.rating))
+                };
+                
+                const statsWithoutThis = {
+                    tracksRated: ratingsWithoutThis.length,
+                    albumsRated: albumsWithoutThis.length,
+                    perfect10Count: ratingsWithoutThis.filter(r => r.rating === 10).length,
+                    harshRatingsCount: ratingsWithoutThis.filter(r => r.rating < 5).length,
+                    ratingsUsed: new Set(ratingsWithoutThis.map(r => r.rating))
+                };
+                
+                // Check each achievement to see if it should be revoked
+                const achievementsToRevoke = [];
+                
+                for (const [achievementId, achievementData] of Object.entries(currentAchievements)) {
+                    if (!achievementData.unlocked) continue;
+                    
+                    const achievement = ACHIEVEMENTS[achievementId];
+                    if (!achievement) continue;
+                    
+                    let wasUnlockedWith = false;
+                    let stillUnlockedWithout = false;
+                    
+                    // Check if achievement was unlocked WITH this album
+                    switch (achievement.type) {
+                        case 'tracks':
+                            wasUnlockedWith = statsWithThis.tracksRated >= achievement.target;
+                            stillUnlockedWithout = statsWithoutThis.tracksRated >= achievement.target;
+                            break;
+                        case 'albums':
+                            wasUnlockedWith = statsWithThis.albumsRated >= achievement.target;
+                            stillUnlockedWithout = statsWithoutThis.albumsRated >= achievement.target;
+                            break;
+                        case 'perfect10s':
+                            wasUnlockedWith = statsWithThis.perfect10Count >= achievement.target;
+                            stillUnlockedWithout = statsWithoutThis.perfect10Count >= achievement.target;
+                            break;
+                        case 'harsh':
+                            wasUnlockedWith = statsWithThis.harshRatingsCount >= achievement.target;
+                            stillUnlockedWithout = statsWithoutThis.harshRatingsCount >= achievement.target;
+                            break;
+                        case 'special':
+                            if (achievementId === 'rating_range') {
+                                wasUnlockedWith = statsWithThis.ratingsUsed.size >= achievement.target;
+                                stillUnlockedWithout = statsWithoutThis.ratingsUsed.size >= achievement.target;
+                            }
+                            break;
+                    }
+                    
+                    // If it was unlocked but won't be without this album, revoke it
+                    if (wasUnlockedWith && !stillUnlockedWithout) {
+                        achievementsToRevoke.push(achievementId);
+                        lpcToDeduct += achievement.lpcReward;
+                    }
+                }
+                
+                // Check for bingo LPC (if this was a party mode album with bingo)
+                if (album.partyMode && album.bingoBoards) {
+                    // Check if this participant got bingo and was awarded LPC
+                    // You'd need to track this in the album data, but for now assume worst case
+                    // Could add: album.bingoLPCAwarded = { participantId: true/false }
+                }
+                
+                lpcAdjustments[participantId] = {
+                    lpcToDeduct,
+                    achievementsToRevoke
+                };
+            }
+        }
+        
+        // Confirm with admin
+        const totalLPC = Object.values(lpcAdjustments).reduce((sum, adj) => sum + adj.lpcToDeduct, 0);
+        const affectedUsers = Object.keys(lpcAdjustments).length;
+        
+        const confirmed = confirm(
+            `This will delete the album and:\n\n` +
+            `• Affect ${affectedUsers} user(s)\n` +
+            `• Deduct ${totalLPC} total LPC\n` +
+            `• Revoke achievements that were only unlocked because of this album\n\n` +
+            `Continue?`
+        );
+        
+        if (!confirmed) {
+            showNotification('Deletion cancelled', 'info');
+            return;
+        }
+        
+        // Perform the rollback
+        showNotification('Rolling back LPC and achievements...', 'info');
+        
+        for (const [participantId, adjustment] of Object.entries(lpcAdjustments)) {
+            if (adjustment.lpcToDeduct > 0 || adjustment.achievementsToRevoke.length > 0) {
+                const participantDoc = await db.collection('participants').doc(participantId).get();
+                const participantData = participantDoc.data();
+                const currentAchievements = participantData.achievements || {};
+                
+                // Revoke achievements
+                adjustment.achievementsToRevoke.forEach(achievementId => {
+                    delete currentAchievements[achievementId];
+                });
+                
+                // Deduct LPC
+                const newLPC = Math.max(0, (participantData.lpc || 0) - adjustment.lpcToDeduct);
+                
+                await db.collection('participants').doc(participantId).update({
+                    lpc: newLPC,
+                    achievements: currentAchievements
+                });
+                
+                console.log(`Deducted ${adjustment.lpcToDeduct} LPC from ${participantId}`);
+            }
+        }
+        
+        // Now delete the album
         await db.collection('albums').doc(currentAlbumId).delete();
         
-        showNotification('✅ Album deleted successfully', 'success');
+        showNotification(`✅ Album deleted and ${totalLPC} LPC rolled back from ${affectedUsers} user(s)`, 'success');
         closeDeleteConfirmModal();
         closeAlbumModal();
-        
-        // Reload albums
         loadAlbums();
+        
     } catch (error) {
-        console.error('❌ Error deleting album:', error);
+        console.error('Error deleting album:', error);
         showNotification('Error deleting album', 'error');
     }
 }
