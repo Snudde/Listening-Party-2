@@ -680,10 +680,18 @@ if (partySession.bingoContainerId) {
     const sessionDoc = await db.collection('party-sessions').doc(partySession.roomCode).get();
     const latestBingoBoards = sessionDoc.data().bingoBoards;
     
+    console.log('🔍 Fetched latestBingoBoards from Firestore:', latestBingoBoards);
+    console.log('🔍 partySession.participants:', partySession.participants);
+    
     if (latestBingoBoards) {
         partySession.participants.forEach(participant => {
+            console.log(`🔍 Checking participant: ${participant.name}, guest ID: ${participant.id}, real ID: ${participant.participantId}`);
+            
             if (participant.participantId) {
                 const board = latestBingoBoards[participant.id];
+                console.log(`🔍 Board for ${participant.name}:`, board);
+                console.log(`🔍 lpcAwarded flag:`, board?.lpcAwarded);
+                
                 if (board && board.lpcAwarded) {
                     bingoLPCAwarded[participant.participantId] = true;
                     console.log(`✅ ${participant.name} earned bingo LPC - will track in album`);
@@ -691,6 +699,8 @@ if (partySession.bingoContainerId) {
             }
         });
     }
+    
+    console.log('🔍 Final bingoLPCAwarded object:', bingoLPCAwarded);
 }
         
         // Save to albums collection
