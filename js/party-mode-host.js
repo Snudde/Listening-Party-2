@@ -318,24 +318,58 @@ function showLobby() {
     
     // Listen for participants joining
     unsubscribe = db.collection('party-sessions').doc(partySession.roomCode)
-        .onSnapshot(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                partySession.participants = data.participants || [];
-                partySession.ratings = data.ratings || {};
-                
-                // Update based on current phase
-                if (partySession.phase === 'lobby') {
-                    updateLobbyDisplay();
-                } else if (partySession.phase === 'active') {
-                    // Only update live ratings, don't rebuild the whole display
-                    updateLiveRatingsOnly();
-                }
+    .onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            partySession.participants = data.participants || [];
+            partySession.ratings = data.ratings || {};
+            
+            // NEW: Check for bingo updates
+            if (data.bingoBoards && partySession.bingoBoards) {
+                checkForNewBingos(data.bingoBoards);
             }
-        });
+            
+            // Update based on current phase
+            if (partySession.phase === 'lobby') {
+                updateLobbyDisplay();
+            } else if (partySession.phase === 'active') {
+                updateLiveRatingsOnly();
+            }
+        }
+    });
     
     // Listen for chat messages
     listenForChatMessages();
+}
+
+// Track which bingos we've already announced
+let announcedBingos = {};
+
+// Check for new bingos and announce them
+function checkForNewBingos(newBingoBoards) {
+    partySession.participants.forEach(participant => {
+        const newBoard = newBingoBoards[participant.id];
+        const oldBoard = partySession.bingoBoards[participant.id];
+        
+        if (newBoard && oldBoard) {
+            // Check if participant has new bingo
+            const oldBingoCount = oldBoard.completedRows.length + 
+                                 oldBoard.completedCols.length + 
+                                 oldBoard.completedDiagonals.length;
+            const newBingoCount = newBoard.completedRows.length + 
+                                 newBoard.completedCols.length + 
+                                 newBoard.completedDiagonals.length;
+            
+            // New bingo detected!
+            if (newBingoCount > oldBingoCount && !announcedBingos[participant.id]) {
+                showNotification(`🎉 ${participant.name} got BINGO! +${BINGO_LPC_REWARD} LPC`, 'success');
+                announcedBingos[participant.id] = true;
+            }
+        }
+    });
+    
+    // Update local bingo boards
+    partySession.bingoBoards = newBingoBoards;
 }
 
 // Update ONLY the rating values, not the entire display
@@ -675,17 +709,8 @@ async function finishParty() {
         console.error('❌ Error finishing party:', error);
         showNotification('Error finishing party', 'error');
     }
-
-    // Show results
-showResults();
-
-    // NEW: Render bingo results if bingo was enabled
-    if (partySession.bingoBoards) {
-        renderBingoResults();
-    }
-
-
 }
+
 
 
 
@@ -884,6 +909,11 @@ function showResultsWithMemory() {
     
     // Add memory upload section
     addMemorySection();
+
+    if (partySession.bingoBoards) {
+        console.log('🎲 Rendering bingo results...');
+        renderBingoResults();
+    }
 }
 
 // Add memory upload section to results
