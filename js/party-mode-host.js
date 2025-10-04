@@ -671,6 +671,19 @@ async function finishParty() {
                 }
             });
         });
+
+        // Calculate which participants earned bingo LPC
+const bingoLPCAwarded = {};
+if (partySession.bingoBoards) {
+    partySession.participants.forEach(participant => {
+        if (participant.participantId) { // Only real participants, not guests
+            const board = partySession.bingoBoards[participant.id];
+            if (board && board.lpcAwarded) {
+                bingoLPCAwarded[participant.participantId] = true;
+            }
+        }
+    });
+}
         
         // Save to albums collection
         const albumDoc = await db.collection('albums').add({
@@ -684,7 +697,8 @@ async function finishParty() {
             averageScore: albumAverage,
             isCompleted: true,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            partyMode: true
+            partyMode: true,
+            bingoLPCAwarded: bingoLPCAwarded
         });
         
         partySession.albumId = albumDoc.id;
