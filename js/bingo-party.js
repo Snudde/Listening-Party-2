@@ -111,15 +111,9 @@ async function generateBingoBoards(containerId, participants) {
             const shuffled = [...tiles].sort(() => Math.random() - 0.5);
             const selected = shuffled.slice(0, 16);
             
-            // Create 4x4 grid
-            const grid = [];
-            for (let i = 0; i < 4; i++) {
-                const row = selected.slice(i * 4, (i * 4) + 4);
-                grid.push(row);
-            }
-            
+            // Store as FLAT array (Firestore doesn't support nested arrays)
             boards[participant.id] = {
-                grid: grid,
+                tiles: selected, // Flat array of 16 tiles
                 marked: Array(16).fill(false), // Track which tiles are marked
                 completedRows: [],
                 completedCols: [],
@@ -316,9 +310,9 @@ function openBingoModal(participantId) {
         document.body.appendChild(modal);
     }
     
-    // Build grid HTML
+    // Build grid HTML (tiles is a flat array of 16)
     let gridHTML = '<div class="bingo-grid">';
-    board.grid.flat().forEach((tile, index) => {
+    board.tiles.forEach((tile, index) => {
         const isMarked = board.marked[index];
         gridHTML += `
             <div class="bingo-tile ${isMarked ? 'marked' : ''}" data-index="${index}">
@@ -428,9 +422,9 @@ function renderBingoResults() {
         const card = document.createElement('div');
         card.className = 'bingo-result-card';
         
-        // Mini grid
+        // Mini grid (tiles is a flat array)
         let miniGridHTML = '<div class="bingo-result-mini-grid">';
-        board.grid.flat().forEach((tile, index) => {
+        board.tiles.forEach((tile, index) => {
             miniGridHTML += `
                 <div class="bingo-mini-tile ${board.marked[index] ? 'marked' : ''}">
                     ${tile.emoji || ''}
