@@ -248,6 +248,9 @@ async function awardBingoLPC(participantId) {
         });
         
         board.lpcAwarded = true;
+
+        // NEW: Update the board in Firestore with the lpcAwarded flag
+        await updateBingoBoardInFirestore(participantId);
         
         console.log(`✅ Awarded ${BINGO_LPC_REWARD} LPC to ${participant.name} for bingo!`);
         showNotification(`🎉 ${participant.name} earned ${BINGO_LPC_REWARD} LPC for BINGO!`, 'success');
