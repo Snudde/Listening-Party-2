@@ -361,6 +361,18 @@ function subscribeToSession() {
             }
             
             const data = doc.data();
+
+            // NEW: Store bingo boards reference
+                if (sessionData.bingoBoards) {
+                    if (!window.partySession) {
+                        window.partySession = {};
+                    }
+                    window.partySession.bingoBoards = sessionData.bingoBoards;
+                    window.partySession.bingoContainerId = sessionData.bingoContainerId;
+                    window.partySession.participants = sessionData.participants;
+                    window.partySession.roomCode = guestSession.roomCode;
+                }
+                // END NEW
             
             // Update participant count
             updateParticipantCount(data.participants.length);
@@ -408,6 +420,11 @@ function showRatingPhase(sessionData) {
         guestSession.selectedRating = null;
         document.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('selected'));
         document.getElementById('submitRatingBtn').disabled = true;
+    }
+
+     // NEW: Show bingo UI if enabled
+    if (sessionData.bingoBoards && guestSession.guestId) {
+        renderBingoUI(guestSession.guestId);
     }
 }
 

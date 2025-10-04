@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Admin - Music Party App</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/adjustments.css">
+    <link rel="stylesheet" href="../css/bingo-admin.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 Bingo Admin Panel</h1>
+            <p>Manage bingo tiles and containers for Party Mode</p>
+        </header>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="tiles">Bingo Tiles</button>
+            <button class="tab-btn" data-tab="containers">Bingo Containers</button>
+        </div>
+
+        <!-- TILES TAB -->
+        <div id="tilesTab" class="tab-content active">
+            <div class="section-header">
+                <h2>📝 Bingo Tiles</h2>
+                <button class="btn btn-primary" id="addTileBtn">+ Add New Tile</button>
+            </div>
+
+            <div id="tilesGrid" class="tiles-grid">
+                <!-- Tiles will be loaded here -->
+            </div>
+        </div>
+
+        <!-- CONTAINERS TAB -->
+        <div id="containersTab" class="tab-content">
+            <div class="section-header">
+                <h2>📦 Bingo Containers</h2>
+                <button class="btn btn-primary" id="addContainerBtn">+ Create New Container</button>
+            </div>
+
+            <div id="containersGrid" class="containers-grid">
+                <!-- Containers will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT TILE MODAL -->
+    <div id="tileModal" class="modal">
+        <div class="modal-content">
+            <h2 id="tileModalTitle">Add Bingo Tile</h2>
+            <form id="tileForm">
+                <input type="hidden" id="tileId">
+                
+                <div class="form-group">
+                    <label for="tileText">Tile Text *</label>
+                    <input type="text" id="tileText" required placeholder="e.g., Song fades out">
+                    <p class="help-text">Keep it short - will display on a small bingo card</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="tileEmoji">Emoji (optional)</label>
+                    <input type="text" id="tileEmoji" maxlength="2" placeholder="🎵">
+                </div>
+
+                <div class="form-group">
+                    <label for="tileCategory">Category</label>
+                    <select id="tileCategory">
+                        <option value="general">General</option>
+                        <option value="vocals">Vocals</option>
+                        <option value="instruments">Instruments</option>
+                        <option value="structure">Song Structure</option>
+                        <option value="production">Production</option>
+                        <option value="genre-specific">Genre Specific</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelTileBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Tile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT CONTAINER MODAL -->
+    <div id="containerModal" class="modal">
+        <div class="modal-content modal-large">
+            <h2 id="containerModalTitle">Create Bingo Container</h2>
+            <form id="containerForm">
+                <input type="hidden" id="containerId">
+                
+                <div class="form-group">
+                    <label for="containerName">Container Name *</label>
+                    <input type="text" id="containerName" required placeholder="e.g., Pop Music Bingo">
+                </div>
+
+                <div class="form-group">
+                    <label for="containerDescription">Description</label>
+                    <textarea id="containerDescription" rows="2" placeholder="Describe this bingo container..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Tiles (minimum 16 for a 4x4 board) *</label>
+                    <p class="help-text">Choose which tiles can appear in this container. Tiles will be randomly distributed to participants.</p>
+                    
+                    <div class="tile-selection-grid" id="tileSelectionGrid">
+                        <!-- Available tiles will be loaded here as checkboxes -->
+                    </div>
+                </div>
+
+                <div class="selected-count">
+                    <strong>Selected: <span id="selectedCount">0</span> tiles</strong>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelContainerBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Container</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION MODAL -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content modal-small">
+            <h2>Confirm Delete</h2>
+            <p id="deleteMessage">Are you sure you want to delete this item?</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/app.js"></script>
+    <script src="../js/bingo-admin.js"></script>
+</body>
+</html>

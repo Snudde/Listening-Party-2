@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup form
     document.getElementById('partySetupForm').addEventListener('submit', handleSetup);
+    loadBingoContainersForSetup();
     document.getElementById('partyAlbumCover').addEventListener('change', handleCoverPreview);
     
     // Spotify search
@@ -239,6 +240,12 @@ async function handleSetup(e) {
         partySession.albumTitle = document.getElementById('partyAlbumTitle').value.trim();
         partySession.artistName = document.getElementById('partyArtistName').value.trim();
         partySession.trackCount = parseInt(document.getElementById('partyTrackCount').value);
+
+        // NEW: Get selected bingo container
+        const selectedBingo = document.querySelector('input[name="bingoContainer"]:checked');
+        partySession.bingoContainerId = selectedBingo ? selectedBingo.value : null;
+        console.log('🎲 Bingo container:', partySession.bingoContainerId || 'None');
+        // END NEW
         
         // Upload cover if provided, otherwise use Spotify cover
         const coverFile = document.getElementById('partyAlbumCover').files[0];
@@ -264,7 +271,7 @@ async function handleSetup(e) {
                 });
             }
         }
-        
+
         // Initialize ratings
         partySession.ratings = {};
         partySession.tracks.forEach(track => {
@@ -285,7 +292,9 @@ async function handleSetup(e) {
             currentTrackIndex: 0,
             ratings: partySession.ratings,
             phase: 'lobby',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            bingoContainerId: partySession.bingoContainerId || null,
+    bingoBoards: null  // Will be populated when party starts
         });
         
         console.log('✅ Party session created:', partySession.roomCode);
@@ -412,6 +421,22 @@ async function startParty() {
             showNotification('Wait for at least one participant to join!', 'error');
             return;
         }
+
+        // NEW: Generate bingo boards if container selected
+        if (partySession.bingoContainerId) {
+            console.log('🎲 Generating bingo boards...');
+            partySession.bingoBoards = await generateBingoBoards(
+                partySession.bingoContainerId, 
+                partySession.participants
+            );
+        }
+        
+        // Update session to active phase
+        await db.collection('party-sessions').doc(partySession.roomCode).update({
+            phase: 'active',
+            currentTrackIndex: 0,
+            bingoBoards: partySession.bingoBoards || null  // NEW
+        });
         
         // Update session to active phase
         await db.collection('party-sessions').doc(partySession.roomCode).update({
@@ -653,6 +678,11 @@ async function finishParty() {
     } catch (error) {
         console.error('❌ Error finishing party:', error);
         showNotification('Error finishing party', 'error');
+    }
+
+    // NEW: Render bingo results if bingo was enabled
+    if (partySession.bingoBoards) {
+        renderBingoResults();
     }
 
 
