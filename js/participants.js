@@ -27,6 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('closeDeleteModal').addEventListener('click', closeDeleteModal);
     document.getElementById('cancelDelete').addEventListener('click', closeDeleteModal);
     document.getElementById('confirmDelete').addEventListener('click', handleDeleteParticipant);
+
+    document.getElementById('closeLPCModal').addEventListener('click', closeLPCAdjustModal);
+    document.getElementById('cancelLPCAdjust').addEventListener('click', closeLPCAdjustModal);
+    document.getElementById('lpcAdjustForm').addEventListener('submit', handleLPCAdjust);
 });
 
 // Load all participants from Firestore
@@ -68,21 +72,21 @@ function createParticipantCard(id, data) {
     card.innerHTML = `
         <div class="participant-avatar">
             ${data.profilePicture 
-                ? `<img src="${data.profilePicture}" alt="${data.username}">` 
+                ? `<img src="${data.profilePicture}" alt="${data.username}">`
                 : `<div class="avatar-placeholder">${data.username.charAt(0).toUpperCase()}</div>`
             }
         </div>
         <div class="participant-info">
             <h3>${data.username}</h3>
-            <p class="participant-meta">Joined ${formatDate(data.createdAt)}</p>
+            <p class="participant-meta">
+                <span class="lpc-badge">💎 ${data.lpc || 0} LPC</span>
+                <span>Joined: ${data.createdAt ? formatDate(data.createdAt) : 'Unknown'}</span>
+            </p>
         </div>
         <div class="participant-actions">
-            <button class="btn-icon btn-edit" onclick="openEditModal('${id}')" title="Edit">
-                ✏️
-            </button>
-            <button class="btn-icon btn-delete" onclick="openDeleteModal('${id}', '${data.username}')" title="Delete">
-                🗑️
-            </button>
+            <button class="btn btn-secondary btn-sm" onclick="openLPCAdjustModal('${id}', '${data.username}', ${data.lpc || 0})">⚖️ Adjust LPC</button>
+            <button class="btn btn-secondary btn-sm" onclick="openEditModal('${id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="openDeleteModal('${id}', '${data.username}')">Delete</button>
         </div>
     `;
     return card;
@@ -270,3 +274,65 @@ async function handleDeleteParticipant() {
 // Make functions available globally
 window.openEditModal = openEditModal;
 window.openDeleteModal = openDeleteModal;
+
+// LPC Adjustment Modal
+let currentLPCParticipantId = null;
+
+function openLPCAdjustModal(participantId, username, currentLPC) {
+    currentLPCParticipantId = participantId;
+    document.getElementById('lpcParticipantId').value = participantId;
+    document.getElementById('lpcParticipantName').textContent = username;
+    document.getElementById('lpcCurrentBalance').textContent = currentLPC;
+    document.getElementById('lpcAdjustModal').style.display = 'flex';
+}
+
+function closeLPCAdjustModal() {
+    document.getElementById('lpcAdjustModal').style.display = 'none';
+    document.getElementById('lpcAdjustForm').reset();
+    currentLPCParticipantId = null;
+}
+
+async function handleLPCAdjust(e) {
+    e.preventDefault();
+    
+    if (!currentLPCParticipantId) return;
+    
+    try {
+        const type = document.getElementById('lpcAdjustType').value;
+        const amount = parseInt(document.getElementById('lpcAdjustAmount').value);
+        const reason = document.getElementById('lpcAdjustReason').value.trim();
+        
+        // Get current LPC
+        const participantDoc = await db.collection('participants').doc(currentLPCParticipantId).get();
+        const currentLPC = participantDoc.data().lpc || 0;
+        
+        // Calculate new LPC
+        let newLPC;
+        if (type === 'add') {
+            newLPC = currentLPC + amount;
+        } else {
+            newLPC = Math.max(0, currentLPC - amount);
+        }
+        
+        // Update in Firestore
+        await db.collection('participants').doc(currentLPCParticipantId).update({
+            lpc: newLPC
+        });
+        
+        // Log the adjustment (optional - for audit trail)
+        console.log(`LPC Adjustment: ${type} ${amount} LPC. Reason: ${reason || 'No reason provided'}`);
+        
+        const action = type === 'add' ? 'added to' : 'deducted from';
+        showNotification(`✅ ${amount} LPC ${action} participant!`, 'success');
+        
+        closeLPCAdjustModal();
+        loadParticipants();
+        
+    } catch (error) {
+        console.error('❌ Error adjusting LPC:', error);
+        showNotification('Error adjusting LPC', 'error');
+    }
+}
+
+// Make function available globally
+window.openLPCAdjustModal = openLPCAdjustModal;

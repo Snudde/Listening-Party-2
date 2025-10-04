@@ -4754,3 +4754,16 @@ header p {
 .results-table tbody tr:hover {
     background: rgba(51, 65, 85, 0.6);
 }
+
+.lpc-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.modal-small {
+    max-width: 500px;
+}

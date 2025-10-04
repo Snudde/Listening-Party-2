@@ -130,6 +130,48 @@
         </div>
     </div>
 
+    <!-- LPC Adjustment Modal -->
+    <div id="lpcAdjustModal" class="modal" style="display: none;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>⚖️ Adjust LPC</h3>
+                <button class="modal-close" id="closeLPCModal">✕</button>
+            </div>
+            
+            <p style="margin-bottom: 20px;">
+                Adjusting LPC for <strong id="lpcParticipantName"></strong><br>
+                <span style="color: var(--text-secondary);">Current Balance: <span id="lpcCurrentBalance">0</span> LPC</span>
+            </p>
+            
+            <form id="lpcAdjustForm">
+                <input type="hidden" id="lpcParticipantId">
+                
+                <div class="form-group">
+                    <label for="lpcAdjustType">Action</label>
+                    <select id="lpcAdjustType" class="form-control" required>
+                        <option value="add">Add LPC</option>
+                        <option value="deduct">Deduct LPC</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lpcAdjustAmount">Amount *</label>
+                    <input type="number" id="lpcAdjustAmount" class="form-control" min="1" required placeholder="Enter amount">
+                </div>
+                
+                <div class="form-group">
+                    <label for="lpcAdjustReason">Reason (optional)</label>
+                    <textarea id="lpcAdjustReason" class="form-control" rows="3" placeholder="Why are you making this adjustment?"></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Confirm Adjustment</button>
+                    <button type="button" class="btn btn-secondary" id="cancelLPCAdjust">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
