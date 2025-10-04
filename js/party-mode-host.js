@@ -431,18 +431,13 @@ async function startParty() {
             );
         }
         
-        // Update session to active phase
-        await db.collection('party-sessions').doc(partySession.roomCode).update({
-            phase: 'active',
-            currentTrackIndex: 0,
-            bingoBoards: partySession.bingoBoards || null  // NEW
-        });
+       
         
         // Update session to active phase
-        await db.collection('party-sessions').doc(partySession.roomCode).update({
-            phase: 'active',
-            currentTrackIndex: 0
-        });
+await db.collection('party-sessions').doc(partySession.roomCode).update({
+    phase: 'active',
+    currentTrackIndex: 0
+});
         
         partySession.phase = 'active';
         partySession.currentTrackIndex = 0;

@@ -361,18 +361,19 @@ function subscribeToSession() {
             }
             
             const data = doc.data();
+            sessionData = data;  // <-- IMPORTANT: Set sessionData
 
             // NEW: Store bingo boards reference
-                if (sessionData.bingoBoards) {
-                    if (!window.partySession) {
-                        window.partySession = {};
-                    }
-                    window.partySession.bingoBoards = sessionData.bingoBoards;
-                    window.partySession.bingoContainerId = sessionData.bingoContainerId;
-                    window.partySession.participants = sessionData.participants;
-                    window.partySession.roomCode = guestSession.roomCode;
+            if (data.bingoBoards) {
+                if (!window.partySession) {
+                    window.partySession = {};
                 }
-                // END NEW
+                window.partySession.bingoBoards = data.bingoBoards;
+                window.partySession.bingoContainerId = data.bingoContainerId;
+                window.partySession.participants = data.participants;
+                window.partySession.roomCode = guestSession.roomCode;
+            }
+            // END NEW
             
             // Update participant count
             updateParticipantCount(data.participants.length);

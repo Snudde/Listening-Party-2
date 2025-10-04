@@ -60,7 +60,7 @@
 .bingo-button {
     position: fixed;
     bottom: 30px;
-    right: 30px;
+    right: 110px; /* Offset from chat button */
     width: 70px;
     height: 70px;
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
