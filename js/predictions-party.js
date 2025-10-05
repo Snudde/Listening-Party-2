@@ -117,6 +117,8 @@ async function showPredictionsSubmission(sessionData) {
     document.getElementById('profilePhase').style.display = 'none';
     document.getElementById('guestNamePhase').style.display = 'none';
     document.getElementById('waitingRoom').classList.remove('active');
+
+    
     document.getElementById('ratingPhase').classList.remove('active');
     
     // Find or create predictions container INSIDE join-container
