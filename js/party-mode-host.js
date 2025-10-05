@@ -327,18 +327,19 @@ function showLobby() {
     partySession.phase = 'lobby';
     
     // Listen for participants joining
-    unsubscribe = db.collection('party-sessions').doc(partySession.roomCode)
+     unsubscribe = db.collection('party-sessions').doc(partySession.roomCode)
     .onSnapshot(doc => {
         if (doc.exists) {
             const data = doc.data();
             partySession.participants = data.participants || [];
             partySession.ratings = data.ratings || {};
             
-            // NEW: Check for bingo updates
+            // Check for bingo updates
             if (data.bingoBoards && partySession.bingoBoards) {
                 checkForNewBingos(data.bingoBoards);
             }
 
+            // Update predictions data
             if (data.predictions) {
                 partySession.predictions = data.predictions;
             }
@@ -355,6 +356,8 @@ function showLobby() {
             // Update based on current phase
             if (partySession.phase === 'lobby') {
                 updateLobbyDisplay();
+            } else if (partySession.phase === 'predictions') {  // ADD THIS LINE
+                updatePredictionsStatus();                       // AND THIS LINE
             } else if (partySession.phase === 'active') {
                 updateLiveRatingsOnly();
             }

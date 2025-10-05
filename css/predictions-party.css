@@ -16,6 +16,17 @@
     gap: 10px;
 }
 
+.predictions-container {
+    display: none;
+    width: 100%;
+}
+
+.predictions-submission-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
 .predictions-container-select {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

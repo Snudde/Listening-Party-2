@@ -119,12 +119,21 @@ async function showPredictionsSubmission(sessionData) {
     document.getElementById('waitingRoom').classList.remove('active');
     document.getElementById('ratingPhase').classList.remove('active');
     
+    // Find or create predictions container INSIDE join-container
     let predictionsContainer = document.getElementById('predictionsContainer');
     if (!predictionsContainer) {
         predictionsContainer = document.createElement('div');
         predictionsContainer.id = 'predictionsContainer';
         predictionsContainer.className = 'predictions-container';
-        document.body.appendChild(predictionsContainer);
+        
+        // Insert into join-container (same parent as other phases)
+        const joinContainer = document.querySelector('.join-container');
+        if (joinContainer) {
+            joinContainer.appendChild(predictionsContainer);
+        } else {
+            // Fallback if join-container doesn't exist
+            document.body.appendChild(predictionsContainer);
+        }
     }
     
     predictionsContainer.style.display = 'block';
