@@ -363,6 +363,8 @@ function subscribeToSession() {
             const data = doc.data();
             sessionData = data;  // <-- IMPORTANT: Set sessionData
 
+            
+
             // NEW: Store bingo boards reference
             if (data.bingoBoards) {
                 if (!window.partySession) {
@@ -378,9 +380,21 @@ function subscribeToSession() {
             // Update participant count
             updateParticipantCount(data.participants.length);
             
+            
+
             // Check phase
-            if (data.phase === 'active') {
+            if (data.phase === 'predictions') {  // ADD THIS BLOCK
+                showPredictionsSubmission(data);
+            } else if (data.phase === 'active') {
                 guestSession.currentTrackIndex = data.currentTrackIndex;
+                
+                // Store predictions data if enabled
+                if (data.predictionsContainerId) {
+                    if (!window.partySession) window.partySession = {};
+                    window.partySession.predictionsContainerId = data.predictionsContainerId;
+                    window.partySession.predictions = data.predictions;
+                }
+                
                 showRatingPhase(data);
             } else if (data.phase === 'results') {
                 showPartyEnded(data);
@@ -426,6 +440,11 @@ function showRatingPhase(sessionData) {
      // NEW: Show bingo UI if enabled
     if (sessionData.bingoBoards && guestSession.guestId) {
         renderBingoUI(guestSession.guestId);
+    }
+
+    // ADD THIS: Add predictions view button
+    if (sessionData.predictionsContainerId) {
+        addPredictionsViewButton(guestSession.participantId);
     }
 }
 

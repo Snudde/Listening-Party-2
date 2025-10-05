@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup form
     document.getElementById('partySetupForm').addEventListener('submit', handleSetup);
     loadBingoContainersForSetup();
+    loadPredictionsContainersForSetup();
     document.getElementById('partyAlbumCover').addEventListener('change', handleCoverPreview);
     
     // Spotify search
@@ -247,6 +248,10 @@ async function handleSetup(e) {
         console.log('🎲 Bingo container:', partySession.bingoContainerId || 'None');
         // END NEW
         
+        const selectedPredictions = document.querySelector('input[name="predictionsContainer"]:checked');
+        partySession.predictionsContainerId = selectedPredictions ? selectedPredictions.value : null;
+        console.log('🎯 Predictions container:', partySession.predictionsContainerId || 'None');
+
         // Upload cover if provided, otherwise use Spotify cover
         const coverFile = document.getElementById('partyAlbumCover').files[0];
         if (coverFile) {
@@ -294,7 +299,12 @@ async function handleSetup(e) {
             phase: 'lobby',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             bingoContainerId: partySession.bingoContainerId || null,
-    bingoBoards: null  // Will be populated when party starts
+    bingoBoards: null,  // Will be populated when party starts
+    predictionsContainerId: partySession.predictionsContainerId || null,
+            predictions: null,
+            predictionResults: null,
+            predictionScores: null,
+            predictionWinner: null
         });
         
         console.log('✅ Party session created:', partySession.roomCode);
@@ -327,6 +337,19 @@ function showLobby() {
             // NEW: Check for bingo updates
             if (data.bingoBoards && partySession.bingoBoards) {
                 checkForNewBingos(data.bingoBoards);
+            }
+
+            if (data.predictions) {
+                partySession.predictions = data.predictions;
+            }
+            if (data.predictionResults) {
+                partySession.predictionResults = data.predictionResults;
+            }
+            if (data.predictionScores) {
+                partySession.predictionScores = data.predictionScores;
+            }
+            if (data.predictionWinner) {
+                partySession.predictionWinner = data.predictionWinner;
             }
             
             // Update based on current phase
@@ -451,12 +474,13 @@ async function updateLobbyDisplay() {
 // Start the party
 async function startParty() {
     try {
+        // Validate participants
         if (partySession.participants.length === 0) {
-            showNotification('Wait for at least one participant to join!', 'error');
+            showNotification('Need at least 1 participant', 'error');
             return;
         }
 
-        // NEW: Generate bingo boards if container selected
+        // Generate bingo boards if bingo is enabled
         if (partySession.bingoContainerId) {
             console.log('🎲 Generating bingo boards...');
             partySession.bingoBoards = await generateBingoBoards(
@@ -465,19 +489,27 @@ async function startParty() {
             );
         }
         
-       
-        
- // Update session to active phase
-await db.collection('party-sessions').doc(partySession.roomCode).update({
-    phase: 'active',
-    currentTrackIndex: 0,
-    bingoBoards: partySession.bingoBoards || null  // ADD THIS LINE
-});
-        
-        partySession.phase = 'active';
-        partySession.currentTrackIndex = 0;
-        
-        showActivePhase();
+        // NEW: If predictions enabled, go to predictions phase
+        if (partySession.predictionsContainerId) {
+            await db.collection('party-sessions').doc(partySession.roomCode).update({
+                phase: 'predictions',
+                bingoBoards: partySession.bingoBoards || null
+            });
+            
+            partySession.phase = 'predictions';
+            showPredictionsPhase();
+        } else {
+            // No predictions, go straight to active
+            await db.collection('party-sessions').doc(partySession.roomCode).update({
+                phase: 'active',
+                currentTrackIndex: 0,
+                bingoBoards: partySession.bingoBoards || null
+            });
+            
+            partySession.phase = 'active';
+            partySession.currentTrackIndex = 0;
+            showActivePhase();
+        }
         
     } catch (error) {
         console.error('❌ Error starting party:', error);
@@ -616,10 +648,13 @@ async function nextTrack() {
 // Party Mode Awards Ceremony Enhancement
 // Add these functions to party-mode-host.js
 
-// Replace the existing finishParty function with this enhanced version
 async function finishParty() {
     try {
-       
+        // NEW: If predictions enabled and no results yet, show modal first
+        if (partySession.predictionsContainerId && !partySession.predictionResults) {
+            showPredictionResultsModal();
+            return; // Don't finish yet, wait for prediction results
+        }
 
         // Check if last track is rated
         const trackNum = partySession.currentTrackIndex + 1;
@@ -652,7 +687,8 @@ async function finishParty() {
             }
         });
         
-        const albumAverage = albumCount > 0 ? parseFloat((albumTotal / albumCount).toFixed(2)) : 0;
+        const albumAverage = albumCount > 0 ?
+            parseFloat((albumTotal / albumCount).toFixed(2)) : 0;
         
         // Get participant IDs
         const participantIds = partySession.participants
@@ -674,32 +710,22 @@ async function finishParty() {
             });
         });
 
-// Calculate which participants earned bingo LPC
-// Use LOCAL bingoBoards state which is most up-to-date
-const bingoLPCAwarded = {};
-if (partySession.bingoContainerId && partySession.bingoBoards) {
-    console.log('🔍 Checking bingo LPC awards...');
-    
-    partySession.participants.forEach(participant => {
-        console.log(`🔍 Checking participant: ${participant.name}, guest ID: ${participant.id}, real ID: ${participant.participantId}`);
-        
-        if (participant.participantId) {
-            const board = partySession.bingoBoards[participant.id];
-            console.log(`🔍 Board for ${participant.name}:`, board);
-            console.log(`🔍 hasBingo:`, board?.hasBingo);
-            console.log(`🔍 lpcAwarded flag:`, board?.lpcAwarded);
+        // Calculate which participants earned bingo LPC
+        const bingoLPCAwarded = {};
+        if (partySession.bingoContainerId && partySession.bingoBoards) {
+            console.log('🔍 Checking bingo LPC awards...');
             
-            // Track if they got bingo AND had LPC awarded
-            // OR if they just got bingo (to handle the sync issue)
-            if (board && board.hasBingo) {
-                bingoLPCAwarded[participant.participantId] = true;
-                console.log(`✅ ${participant.name} got bingo - will track 10 LPC for deduction`);
-            }
+            partySession.participants.forEach(participant => {
+                if (participant.participantId) {
+                    const board = partySession.bingoBoards[participant.id];
+                    
+                    if (board && board.hasBingo) {
+                        bingoLPCAwarded[participant.participantId] = true;
+                        console.log(`✅ ${participant.name} got bingo - will track 10 LPC for deduction`);
+                    }
+                }
+            });
         }
-    });
-    
-    console.log('🔍 Final bingoLPCAwarded object:', bingoLPCAwarded);
-}
         
         // Save to albums collection
         const albumDoc = await db.collection('albums').add({
@@ -714,7 +740,14 @@ if (partySession.bingoContainerId && partySession.bingoBoards) {
             isCompleted: true,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             partyMode: true,
-            bingoLPCAwarded: Object.keys(bingoLPCAwarded).length > 0 ? bingoLPCAwarded : null  // Changed this line
+            bingoLPCAwarded: Object.keys(bingoLPCAwarded).length > 0 ? bingoLPCAwarded : null,
+            
+            // NEW: Predictions data
+            predictionsContainerId: partySession.predictionsContainerId || null,
+            predictions: partySession.predictions || null,
+            predictionResults: partySession.predictionResults || null,
+            predictionScores: partySession.predictionScores || null,
+            predictionWinner: partySession.predictionWinner || null
         });
         
         partySession.albumId = albumDoc.id;
@@ -727,8 +760,7 @@ if (partySession.bingoContainerId && partySession.bingoBoards) {
         });
         
         partySession.phase = 'results';
-        partySession.albumAverage = albumAverage;  // ADD THIS LINE
-        
+        partySession.albumAverage = albumAverage;
         
         // START AWARDS CEREMONY
         showAwardsCeremony(albumAverage, trackScores);
@@ -739,6 +771,12 @@ if (partySession.bingoContainerId && partySession.bingoBoards) {
         console.error('❌ Error finishing party:', error);
         showNotification('Error finishing party', 'error');
     }
+}
+
+// NEW FUNCTION: Continue finishing after prediction results are entered
+async function continueFinishParty() {
+    // Just call the regular finish function now that results are set
+    await finishParty();
 }
 
 
@@ -830,8 +868,20 @@ function revealResults(albumAverage, trackScores) {
                             </div>
                         </div>
                     ` : ''}
+                     ${partySession.predictionWinner ? `
+                        <div class="award-badge">
+                            <span class="award-icon">🎯</span>
+                            <div class="award-info">
+                                <div class="award-label">Prediction Master</div>
+                                <div class="award-value">${getPredictionsWinnerName()}</div>
+                                <div class="award-score">${partySession.predictionScores[partySession.predictionWinner].toFixed(1)}%</div>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             ` : ''}
+
+            
             <button class="btn btn-primary continue-btn" onclick="closeAwardsAndShowResults()">
                 Continue to Full Results
             </button>

@@ -1,0 +1,506 @@
+/* Predictions System Styles for Party Mode */
+
+/* Predictions Container Selection in Setup */
+.predictions-selection-section {
+    margin-top: 25px;
+    padding: 20px;
+    background: var(--surface-light);
+    border-radius: 12px;
+    border: 2px dashed var(--border-color);
+}
+
+.predictions-selection-section h3 {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.predictions-container-select {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.predictions-container-option {
+    padding: 15px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.predictions-container-option:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.predictions-container-option.selected {
+    border-color: var(--primary-color);
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.predictions-container-option input[type="radio"] {
+    margin-right: 10px;
+}
+
+.predictions-container-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.predictions-container-count {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Predictions Phase (Host) */
+.predictions-waiting {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.predictions-waiting h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.predictions-waiting > p {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+}
+
+.predictions-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.participant-status {
+    padding: 20px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.participant-status.submitted {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.participant-status.waiting {
+    border-color: var(--border-color);
+}
+
+.status-icon {
+    font-size: 32px;
+}
+
+.participant-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.btn-large {
+    padding: 20px 40px;
+    font-size: 1.3rem;
+}
+
+/* Predictions Submission Form (Guest) */
+.predictions-submission-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+.predictions-submission-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.predictions-submission-header h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.predictions-submission-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.prediction-question-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.prediction-question-card:hover {
+    border-color: var(--primary-color);
+}
+
+.prediction-question-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.prediction-question-emoji {
+    font-size: 28px;
+}
+
+.prediction-question-text {
+    flex: 1;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* Number Input Styling */
+.prediction-number-input {
+    margin-top: 15px;
+}
+
+.prediction-number-input label {
+    display: block;
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.number-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.number-input-wrapper input[type="number"] {
+    flex: 1;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-light);
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.number-input-wrapper input[type="number"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.number-input-range {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.number-input-range input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    outline: none;
+}
+
+.number-input-range input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.number-input-range input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.number-input-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    text-align: center;
+}
+
+/* Yes/No Input Styling */
+.prediction-yesno-input {
+    margin-top: 15px;
+}
+
+.yesno-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.yesno-button {
+    padding: 20px;
+    border: 3px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--card-bg);
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.yesno-button:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.yesno-button.selected {
+    border-color: var(--primary-color);
+    background: rgba(102, 126, 234, 0.15);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.yesno-button.yes.selected {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.yesno-button.no.selected {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.yesno-icon {
+    font-size: 24px;
+}
+
+/* Submit Button */
+.predictions-submit-section {
+    margin-top: 40px;
+    text-align: center;
+    padding: 30px;
+    background: var(--surface-light);
+    border-radius: 12px;
+}
+
+.predictions-submit-section p {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+.predictions-submit-section button {
+    padding: 18px 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Predictions Button (during rating phase) */
+.predictions-button {
+    position: fixed;
+    bottom: 30px;
+    right: 190px;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.predictions-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 25px rgba(139, 92, 246, 0.6);
+}
+
+/* Predictions View Modal */
+.predictions-view-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+}
+
+.predictions-view-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.predictions-view-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.predictions-view-header h2 {
+    margin: 0;
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.close-modal-btn:hover {
+    background: var(--surface-light);
+    color: var(--text-primary);
+}
+
+.prediction-view-item {
+    padding: 15px;
+    margin-bottom: 15px;
+    background: var(--surface-light);
+    border-radius: 8px;
+}
+
+.prediction-view-question {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.prediction-view-answer {
+    font-size: 20px;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* Prediction Results (Host - answer entry) */
+.prediction-results-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+}
+
+.prediction-results-content {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 700px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.prediction-results-header {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.prediction-results-header h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.prediction-results-header p {
+    color: var(--text-secondary);
+}
+
+.prediction-answer-card {
+    background: var(--surface-light);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.prediction-answer-question {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.prediction-results-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.prediction-results-actions button {
+    flex: 1;
+    padding: 15px;
+    font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .predictions-container-select {
+        grid-template-columns: 1fr;
+    }
+    
+    .predictions-status {
+        grid-template-columns: 1fr;
+    }
+    
+    .predictions-button {
+        right: 30px;
+        bottom: 120px;
+    }
+    
+    .yesno-buttons {
+        grid-template-columns: 1fr;
+    }
+}
