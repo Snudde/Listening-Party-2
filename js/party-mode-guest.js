@@ -409,6 +409,9 @@ function showRatingPhase(sessionData) {
     document.getElementById('profilePhase').style.display = 'none';
     document.getElementById('guestNamePhase').style.display = 'none';
     document.getElementById('waitingRoom').classList.remove('active');
+
+    const predictionsContainer = document.getElementById('predictionsContainer');
+    if (predictionsContainer) predictionsContainer.style.display = 'none';
     
     // Show rating phase
     document.getElementById('ratingPhase').classList.add('active');

@@ -402,6 +402,9 @@ async function startRatingFromPredictions() {
         
         partySession.phase = 'active';
         partySession.currentTrackIndex = 0;
+
+        const predictionsPhase = document.getElementById('predictionsPhase');
+        if (predictionsPhase) predictionsPhase.style.display = 'none';
         showActivePhase();
         
     } catch (error) {
