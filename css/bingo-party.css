@@ -431,3 +431,22 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Predictions Container (Guest Phase) */
+.predictions-container {
+    display: none;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.predictions-container.active {
+    display: block;
+}
+
+/* Predictions Container - matches guest page structure */
+.predictions-container {
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: var(--background);
+}

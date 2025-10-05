@@ -112,16 +112,22 @@ async function showPredictionsSubmission(sessionData) {
         return;
     }
     
-    // Hide waiting room, show predictions form
+    // Hide all other phases
+    document.getElementById('joinPhase').style.display = 'none';
+    document.getElementById('profilePhase').style.display = 'none';
+    document.getElementById('guestNamePhase').style.display = 'none';
     document.getElementById('waitingRoom').classList.remove('active');
+    document.getElementById('ratingPhase').classList.remove('active');
     
     let predictionsContainer = document.getElementById('predictionsContainer');
     if (!predictionsContainer) {
         predictionsContainer = document.createElement('div');
         predictionsContainer.id = 'predictionsContainer';
-        document.querySelector('.container').appendChild(predictionsContainer);
+        predictionsContainer.className = 'predictions-container';
+        document.body.appendChild(predictionsContainer);
     }
     
+    predictionsContainer.style.display = 'block';
     predictionsContainer.innerHTML = `
         <div class="predictions-submission-container">
             <div class="predictions-submission-header">
@@ -273,13 +279,20 @@ async function submitPredictions(questions) {
             return;
         }
         
+        // FIX: Use guestSession.guestId (the participant's session ID)
+        const participantId = guestSession.guestId;
+        
+        console.log('Submitting predictions for:', participantId);
+        console.log('Answers:', answers);
+        
         // Submit to Firestore
         await db.collection('party-sessions').doc(guestSession.roomCode).update({
-            [`predictions.${guestSession.participantId}.answers`]: answers,
-            [`predictions.${guestSession.participantId}.submitted`]: true,
-            [`predictions.${guestSession.participantId}.submittedAt`]: firebase.firestore.FieldValue.serverTimestamp()
+            [`predictions.${participantId}.answers`]: answers,
+            [`predictions.${participantId}.submitted`]: true,
+            [`predictions.${participantId}.submittedAt`]: firebase.firestore.FieldValue.serverTimestamp()
         });
         
+        console.log('✅ Predictions submitted successfully');
         showNotification('✅ Predictions submitted!', 'success');
         
         // Hide form, show waiting message
