@@ -384,8 +384,12 @@ function subscribeToSession() {
 
             // Check phase
             if (data.phase === 'predictions') {  // ADD THIS BLOCK
-                showPredictionsSubmission(data);
-            } else if (data.phase === 'active') {
+                // Only show submission form if user hasn't submitted yet
+    const hasSubmitted = data.predictions?.[guestSession.guestId]?.submitted;
+    if (!hasSubmitted) {
+        showPredictionsSubmission(data);
+    }
+} else if (data.phase === 'active') {
                 guestSession.currentTrackIndex = data.currentTrackIndex;
                 
                 // Store predictions data if enabled

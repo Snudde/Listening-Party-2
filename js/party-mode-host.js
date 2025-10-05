@@ -944,6 +944,10 @@ function showResultsWithMemory() {
         `;
         trackList.appendChild(trackItem);
     });
+
+    if (partySession.predictionsContainerId) {
+        displayPredictionsResults();
+    }
     
     // Add rating matrix after track list
     const resultsContainer = document.querySelector('#resultsPhase .results-container');
@@ -1233,6 +1237,177 @@ function createConfetti(scoreClass) {
         }, i * 10);
     }
 }
+
+/**
+ * Display predictions leaderboard on results screen
+ */
+async function displayPredictionsResults() {
+    // Only show if predictions were enabled
+    if (!partySession.predictionsContainerId || !partySession.predictionScores) return;
+    
+    const questions = await loadPredictionQuestions(partySession.predictionsContainerId);
+    if (questions.length === 0) return;
+    
+    // Create or find predictions section
+    const resultsContainer = document.querySelector('#resultsPhase .results-container');
+    let predictionsSection = document.getElementById('predictionsResultsSection');
+    
+    if (!predictionsSection) {
+        predictionsSection = document.createElement('div');
+        predictionsSection.id = 'predictionsResultsSection';
+        predictionsSection.style.marginTop = '40px';
+        
+        // Insert before the results actions
+        const actionsDiv = document.querySelector('.results-actions');
+        resultsContainer.insertBefore(predictionsSection, actionsDiv);
+    }
+    
+    // Build leaderboard
+    const leaderboard = Object.entries(partySession.predictionScores)
+        .map(([participantId, score]) => {
+            const participant = partySession.participants.find(p => p.id === participantId);
+            const predictions = partySession.predictions[participantId];
+            return {
+                id: participantId,
+                name: participant?.name || 'Unknown',
+                score: score,
+                predictions: predictions
+            };
+        })
+        .sort((a, b) => b.score - a.score);
+    
+    // Build HTML
+    let html = `
+        <div class="predictions-results-header">
+            <h3>🎯 Predictions Leaderboard</h3>
+            <p class="predictions-subtitle">Who predicted the future best?</p>
+        </div>
+        <div class="predictions-leaderboard">
+    `;
+    
+    leaderboard.forEach((entry, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+        const isWinner = entry.id === partySession.predictionWinner;
+        
+        html += `
+            <div class="prediction-leaderboard-entry ${isWinner ? 'winner' : ''}">
+                <div class="prediction-rank">${medal}</div>
+                <div class="prediction-player-info">
+                    <div class="prediction-player-name">${entry.name}</div>
+                    <div class="prediction-accuracy-bar">
+                        <div class="prediction-accuracy-fill" style="width: ${entry.score}%"></div>
+                    </div>
+                </div>
+                <div class="prediction-score-badge">${entry.score.toFixed(1)}%</div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    // Add detailed breakdown
+    html += `
+        <div class="predictions-details-toggle">
+            <button class="btn btn-secondary" onclick="togglePredictionsDetails()">
+                View Detailed Answers <span id="predictionsToggleIcon">▼</span>
+            </button>
+        </div>
+        <div class="predictions-detailed-breakdown" id="predictionsDetailedBreakdown" style="display: none;">
+    `;
+    
+    // Show each question with all answers
+    questions.forEach(question => {
+        const correctAnswer = partySession.predictionResults[question.id];
+        
+        html += `
+            <div class="prediction-question-breakdown">
+                <div class="prediction-question-header-result">
+                    <span class="prediction-question-emoji">${question.emoji || '🎯'}</span>
+                    <div class="prediction-question-text-result">${question.text}</div>
+                </div>
+                <div class="prediction-correct-answer">
+                    Correct Answer: <strong>${formatPredictionAnswer(question.type, correctAnswer)}</strong>
+                </div>
+                <div class="prediction-answers-grid">
+        `;
+        
+        // Show each participant's answer
+        leaderboard.forEach(entry => {
+            const userAnswer = entry.predictions?.answers[question.id];
+            const isCorrect = checkPredictionCorrect(question.type, userAnswer, correctAnswer, question);
+            
+            html += `
+                <div class="prediction-answer-card ${isCorrect ? 'correct' : 'incorrect'}">
+                    <div class="prediction-answer-participant">${entry.name}</div>
+                    <div class="prediction-answer-value">${formatPredictionAnswer(question.type, userAnswer)}</div>
+                    <div class="prediction-answer-icon">${isCorrect ? '✅' : '❌'}</div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    predictionsSection.innerHTML = html;
+}
+
+/**
+ * Helper: Format prediction answer for display
+ */
+function formatPredictionAnswer(type, value) {
+    if (value === null || value === undefined) return 'N/A';
+    
+    if (type === 'yesno') {
+        return value ? '✅ Yes' : '❌ No';
+    } else if (type === 'number') {
+        return parseFloat(value).toFixed(2);
+    }
+    
+    return value.toString();
+}
+
+/**
+ * Helper: Check if prediction was correct
+ */
+function checkPredictionCorrect(type, userAnswer, correctAnswer, question) {
+    if (userAnswer === null || userAnswer === undefined) return false;
+    
+    if (type === 'yesno') {
+        return userAnswer === correctAnswer;
+    } else if (type === 'number') {
+        // Consider "correct" if within 20% of the range
+        const range = question.maxValue - question.minValue;
+        const tolerance = range * 0.2;
+        const diff = Math.abs(userAnswer - correctAnswer);
+        return diff <= tolerance;
+    }
+    
+    return false;
+}
+
+/**
+ * Toggle predictions detailed breakdown
+ */
+function togglePredictionsDetails() {
+    const breakdown = document.getElementById('predictionsDetailedBreakdown');
+    const icon = document.getElementById('predictionsToggleIcon');
+    
+    if (breakdown.style.display === 'none') {
+        breakdown.style.display = 'block';
+        icon.textContent = '▲';
+    } else {
+        breakdown.style.display = 'none';
+        icon.textContent = '▼';
+    }
+}
+
+// Make globally available
+window.togglePredictionsDetails = togglePredictionsDetails;
 
 // Make functions globally available
 window.closeAwardsAndShowResults = closeAwardsAndShowResults;
