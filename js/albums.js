@@ -588,6 +588,18 @@ if (album.partyMode && album.bingoLPCAwarded && album.bingoLPCAwarded[participan
     lpcToDeduct += 10; // BINGO_LPC_REWARD
     console.log(`Adding 10 LPC deduction for bingo from ${participantId}`);
 }
+
+if (album.partyMode && album.predictionLPCAwarded) {
+    for (const participantId in album.predictionLPCAwarded) {
+        if (album.predictionLPCAwarded[participantId]) {
+            if (!lpcAdjustments[participantId]) {
+                lpcAdjustments[participantId] = { lpcToDeduct: 0, achievementsToRevoke: [] };
+            }
+            lpcAdjustments[participantId].lpcToDeduct += 15;
+            console.log(`Adding 15 LPC deduction for predictions from ${participantId}`);
+        }
+    }
+}
                 
                 lpcAdjustments[participantId] = {
                     lpcToDeduct,

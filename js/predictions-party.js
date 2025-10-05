@@ -633,6 +633,8 @@ async function savePredictionResults(questions) {
         
         closePredictionResultsModal();
         showNotification('✅ Prediction results calculated!', 'success');
+
+        await awardPredictionLPC();
         
         // Continue with finishing the party
         continueFinishParty();
@@ -707,6 +709,172 @@ function getPredictionsWinnerName() {
     return participant ? participant.name : 'Unknown';
 }
 
+
+
 // Make functions globally available
 window.closePredictionsViewModal = closePredictionsViewModal;
 window.closePredictionResultsModal = closePredictionResultsModal;
+
+// Add to js/predictions-party.js
+
+// Prediction LPC Reward Amount
+const PREDICTION_LPC_REWARD = 15; // More than bingo since it's harder to win!
+
+/**
+ * Award LPC to prediction winner
+ * Call this after prediction results are calculated
+ */
+async function awardPredictionLPC() {
+    if (!partySession.predictionWinner) {
+        console.log('No prediction winner to award LPC');
+        return;
+    }
+    
+    // Find the winning participant
+    const winner = partySession.participants.find(p => p.id === partySession.predictionWinner);
+    
+    if (!winner) {
+        console.log('Winner not found in participants');
+        return;
+    }
+    
+    // Check if it's a guest (guests don't have participantId, so no LPC)
+    if (!winner.participantId) {
+        console.log('Cannot award LPC - winner is a guest user');
+        showNotification(`🎯 ${winner.name} won predictions but can't receive LPC (guest user)`, 'warning');
+        return;
+    }
+    
+    // Check if already awarded (prevent double-awarding)
+    if (partySession.predictionLPCAwarded) {
+        console.log('Prediction LPC already awarded');
+        return;
+    }
+    
+    try {
+        // Award LPC to the participant
+        await db.collection('participants').doc(winner.participantId).update({
+            lpc: firebase.firestore.FieldValue.increment(PREDICTION_LPC_REWARD)
+        });
+        
+        // Mark as awarded in session
+        partySession.predictionLPCAwarded = true;
+        
+        // Update Firestore session to track that LPC was awarded
+        await db.collection('party-sessions').doc(partySession.roomCode).update({
+            predictionLPCAwarded: true
+        });
+        
+        console.log(`✅ Awarded ${PREDICTION_LPC_REWARD} LPC to ${winner.name} for winning predictions!`);
+        showNotification(`🎯 ${winner.name} earned ${PREDICTION_LPC_REWARD} LPC for winning predictions!`, 'success');
+        
+        // Show celebration popup for the winner
+        showPredictionWinnerCelebration(winner.name);
+        
+    } catch (error) {
+        console.error('Error awarding prediction LPC:', error);
+        showNotification('Error awarding prediction LPC', 'error');
+    }
+}
+
+/**
+ * Show celebration popup for prediction winner
+ */
+function showPredictionWinnerCelebration(winnerName) {
+    const celebration = document.createElement('div');
+    celebration.className = 'lpc-celebration-popup';
+    celebration.innerHTML = `
+        <h2>🎯 Prediction Master!</h2>
+        <p>${winnerName}</p>
+        <h2 style="margin-top: 10px;">+${PREDICTION_LPC_REWARD} LPC 🎉</h2>
+    `;
+    
+    document.body.appendChild(celebration);
+    
+    setTimeout(() => {
+        celebration.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        celebration.classList.remove('show');
+        setTimeout(() => celebration.remove(), 500);
+    }, 3000);
+}
+
+// ===================================
+// INTEGRATION INSTRUCTIONS
+// ===================================
+
+/*
+1. UPDATE savePredictionResults() function:
+   Add this call after calculating the winner, before calling continueFinishParty():
+
+   async function savePredictionResults(questions) {
+       try {
+           // ... existing code to calculate scores and winner ...
+           
+           // Save to Firestore
+           await db.collection('party-sessions').doc(partySession.roomCode).update({
+               predictionResults: results,
+               predictionScores: scores,
+               predictionWinner: winner?.id || null
+           });
+           
+           partySession.predictionResults = results;
+           partySession.predictionScores = scores;
+           partySession.predictionWinner = winner?.id || null;
+           
+           closePredictionResultsModal();
+           showNotification('✅ Prediction results calculated!', 'success');
+           
+           // ⭐ ADD THIS LINE ⭐
+           await awardPredictionLPC();
+           
+           // Continue with finishing the party
+           continueFinishParty();
+           
+       } catch (error) {
+           console.error('Error saving prediction results:', error);
+           showNotification('Error saving results', 'error');
+       }
+   }
+
+2. UPDATE finishParty() in party-mode-host.js:
+   Add predictionLPCAwarded to the album document:
+
+   // Save to albums collection
+   const albumDoc = await db.collection('albums').add({
+       // ... existing fields ...
+       predictionLPCAwarded: partySession.predictionLPCAwarded ? 
+           { [winner.participantId]: true } : null
+   });
+
+3. UPDATE displayPredictionsResults() function:
+   Show the LPC badge for the winner in the leaderboard.
+   Replace the prediction-score-badge div with:
+
+   <div class="prediction-score-badge">
+       ${entry.score.toFixed(1)}%
+       ${isWinner && partySession.predictionLPCAwarded ? 
+           `<div class="lpc-badge">+${PREDICTION_LPC_REWARD} LPC</div>` : ''}
+   </div>
+
+4. UPDATE album deletion in albums.js:
+   Add prediction LPC deduction similar to bingo:
+
+   // After the bingo LPC check, add:
+   if (album.partyMode && album.predictionLPCAwarded) {
+       for (const participantId in album.predictionLPCAwarded) {
+           if (album.predictionLPCAwarded[participantId]) {
+               if (!lpcAdjustments[participantId]) {
+                   lpcAdjustments[participantId] = { lpcToDeduct: 0, achievementsToRevoke: [] };
+               }
+               lpcAdjustments[participantId].lpcToDeduct += 15; // PREDICTION_LPC_REWARD
+               console.log(`Adding 15 LPC deduction for predictions from ${participantId}`);
+           }
+       }
+   }
+*/
+
+// Make globally available
+window.PREDICTION_LPC_REWARD = PREDICTION_LPC_REWARD;

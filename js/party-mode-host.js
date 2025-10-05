@@ -744,13 +744,28 @@ async function finishParty() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             partyMode: true,
             bingoLPCAwarded: Object.keys(bingoLPCAwarded).length > 0 ? bingoLPCAwarded : null,
+
+            
             
             // NEW: Predictions data
             predictionsContainerId: partySession.predictionsContainerId || null,
             predictions: partySession.predictions || null,
             predictionResults: partySession.predictionResults || null,
             predictionScores: partySession.predictionScores || null,
-            predictionWinner: partySession.predictionWinner || null
+            predictionWinner: partySession.predictionWinner || null,
+
+            // Add this block after bingoLPCAwarded:
+    predictionLPCAwarded: partySession.predictionLPCAwarded && partySession.predictionWinner ? 
+        (() => {
+            const winner = partySession.participants.find(p => p.id === partySession.predictionWinner);
+            if (winner?.participantId) {
+                const obj = {};
+                obj[winner.participantId] = true;
+                return obj;
+            }
+            return null;
+        })() : null
+            
         });
         
         partySession.albumId = albumDoc.id;
@@ -1298,7 +1313,11 @@ async function displayPredictionsResults() {
                         <div class="prediction-accuracy-fill" style="width: ${entry.score}%"></div>
                     </div>
                 </div>
-                <div class="prediction-score-badge">${entry.score.toFixed(1)}%</div>
+                <div class="prediction-score-badge">
+    ${entry.score.toFixed(1)}%
+    ${isWinner && partySession.predictionLPCAwarded ? 
+        `<div class="lpc-badge">+15 LPC</div>` : ''}
+</div>
             </div>
         `;
     });
